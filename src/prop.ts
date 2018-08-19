@@ -1,4 +1,3 @@
-
 abstract class Prop {
   pos : Point;
   constructor(pos: Point) {
