@@ -60,11 +60,10 @@ class PlayState extends State {
     
     while(this.leftover_t >= DT) {
       this.leftover_t -= DT;
-      if (68 in data.keys) cam.x += DT * 0.5;
-      if (65 in data.keys) cam.x -= DT * 0.5;
-      if (83 in data.keys) cam.y += DT * 0.5;
-      if (87 in data.keys) cam.y -= DT * 0.5;
-      this.asteroid.tick();
+      this.asteroid.tick(data);
+      let player_pos = this.asteroid.player.pos;
+      cam.x = player_pos.x - data.width/2;
+      cam.y = player_pos.y - data.height/2;
     }
     return this;
   }
