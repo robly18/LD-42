@@ -10,6 +10,6 @@ class Asteroid {
 
   public render(data : GameData) {
     let ctx = data.ctx;
-    map.render(data);
+    this.map.render(data);
   }
 }

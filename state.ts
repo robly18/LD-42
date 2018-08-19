@@ -5,7 +5,7 @@ abstract class State {
     this.data = data;
   }
 
-  tick() : State {return this;}
+  public tick() : State {return this;}
   render() {}
 }
 
@@ -18,7 +18,7 @@ class MenuState extends State {
     this.secno = 0;
   }
 
-  tick() : State {
+  public tick() : State {
     this.carry_t += this.data.dt();
     while(this.carry_t > 1000) {
       this.carry_t -= 1000;
@@ -27,7 +27,7 @@ class MenuState extends State {
     return this;
   }
   
-  render() {
+  public render() {
     let ctx = this.data.ctx;
 
     ctx.fillStyle = "white";
@@ -45,12 +45,12 @@ class PlayState extends State {
     this.asteroid = new Asteroid(new Map(10,10));
   }
 
-  tick() : State {
+  public tick() : State {
     this.asteroid.tick();
     return this;
   }
   
-  render() {
-    asteroid.render(this.data);
+  public render() {
+    this.asteroid.render(this.data);
   }
 }
