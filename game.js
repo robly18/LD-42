@@ -131,8 +131,13 @@ var Map = (function () {
         this.generate(3000);
     };
     Map.prototype.render = function (data, cam) {
-        for (var i = 0; i < this.width; i++) {
-            for (var j = 0; j < this.height; j++) {
+        var nwx = Math.max(Math.floor(cam.x / tile_size), 0);
+        var nwy = Math.max(Math.floor(cam.y / tile_size), 0);
+        var sex = Math.min(Math.ceil((cam.x + data.width) / tile_size), this.width - 1);
+        var sey = Math.min(Math.ceil((cam.y + data.height) / tile_size), this.height - 1);
+        console.log(nwx, nwy, sex, sey);
+        for (var i = nwx; i <= sex; i++) {
+            for (var j = nwy; j <= sey; j++) {
                 var g = this.ground[i][j];
                 if (g != null) {
                     g.render(data, this.tileset, i * tile_size - cam.x, j * tile_size - cam.y);
