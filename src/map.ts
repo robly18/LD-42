@@ -141,7 +141,7 @@ class Map {
         if(idx == 3) new_pos.y -= 1;
 
         if(cur_gen < this.max_gen && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-          this.ground[new_pos.x][new_pos.y] = new Tile(Resource.MATTER, 100);
+          this.ground[new_pos.x][new_pos.y] = new Tile(Resource.ICE, 100);
           queue.push([new_pos, cur_gen+1]);
         }
       }
