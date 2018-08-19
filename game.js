@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -17,9 +14,7 @@ var Asteroid = (function () {
         this.entities = [];
         this.player = new Entity(new Point(100, 100), false);
         this.player.movement = new PlayerMovementComponent();
-        var img = new Image();
-        img.src = "assets/player.png";
-        this.player.graphics = new PlayerGraphicsComponent(img);
+        this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
         this.entities.push(this.player);
     }
     Asteroid.prototype.tick = function (data) {
@@ -44,6 +39,7 @@ var Entity = (function () {
         this.movement = null;
         this.graphics = null;
         this.pos = pos;
+        this.velocity = new Point(0, 0);
         this.floating = floating;
     }
     Entity.prototype.tick = function (data, asteroid) {
@@ -113,18 +109,58 @@ var Game = (function () {
     return Game;
 }());
 var GraphicsComponent = (function () {
-    function GraphicsComponent(img) {
+    function GraphicsComponent() {
     }
     return GraphicsComponent;
 }());
-var PlayerGraphicsComponent = (function () {
-    function PlayerGraphicsComponent(img) {
-        this.img = img;
+var Facing;
+(function (Facing) {
+    Facing[Facing["DOWN"] = 0] = "DOWN";
+    Facing[Facing["RIGHT"] = 1] = "RIGHT";
+    Facing[Facing["LEFT"] = 2] = "LEFT";
+    Facing[Facing["UP"] = 3] = "UP";
+})(Facing || (Facing = {}));
+var CreatureGraphicsComponent = (function () {
+    function CreatureGraphicsComponent(src, timePerFrame) {
+        if (timePerFrame === void 0) { timePerFrame = 100; }
+        this.facing = Facing.DOWN;
+        this.timeInThisState = 0;
+        this.tileset = new Tileset(src, 8, 16);
+        this.timePerFrame = timePerFrame;
     }
-    PlayerGraphicsComponent.prototype.render = function (data, entity) {
-        data.ctx.drawImage(this.img, (data.width - this.img.width) / 2, (data.height - this.img.height) / 2);
+    CreatureGraphicsComponent.prototype.render = function (data, entity) {
+        if (entity.velocity.x == 0 && entity.velocity.y == 0) {
+            this.timeInThisState = 0;
+        }
+        else {
+            var oldFacing = this.facing;
+            var newFacing = this.facingDirection(entity);
+            if (oldFacing == newFacing) {
+                this.timeInThisState += data.dt();
+            }
+            else {
+                this.timeInThisState = 0;
+                this.facing = newFacing;
+            }
+        }
+        var tx = Math.floor(this.timeInThisState / this.timePerFrame) % 4;
+        var tileset = this.tileset;
+        console.log(tx, this.facing);
+        tileset.draw(data, tx, this.facing, data.width / 2 - tileset.tile_width / 2, data.height / 2 - tileset.tile_height);
     };
-    return PlayerGraphicsComponent;
+    CreatureGraphicsComponent.prototype.facingDirection = function (entity) {
+        var v = entity.velocity;
+        if (v.y > 0)
+            return Facing.DOWN;
+        if (v.y < 0)
+            return Facing.UP;
+        if (v.x < 0)
+            return Facing.LEFT;
+        if (v.x > 0)
+            return Facing.RIGHT;
+        return Facing.DOWN;
+    };
+    return CreatureGraphicsComponent;
 }());
 var DT = 1000 / 60;
 window.onload = function () {
@@ -281,7 +317,7 @@ var PlayerMovementComponent = (function () {
         if (87 in data.keys)
             entity.velocity.y -= 1;
         if (entity.velocity.x != 0 || entity.velocity.y != 0) {
-            var sf = 0.5 / ((function (v) { return Math.sqrt(v.x * v.x + v.y * v.y); })(entity.velocity));
+            var sf = 0.2 / ((function (v) { return Math.sqrt(v.x * v.x + v.y * v.y); })(entity.velocity));
             entity.velocity.x *= sf;
             entity.velocity.y *= sf;
         }
@@ -369,14 +405,17 @@ var PlayState = (function (_super) {
     return PlayState;
 }(State));
 var Tileset = (function () {
-    function Tileset(src, tile_size) {
+    function Tileset(src, tile_width, tile_height) {
+        if (tile_height === void 0) { tile_height = tile_width; }
         this.img = new Image();
         this.img.src = src;
-        this.tile_size = tile_size;
+        this.tile_width = tile_width;
+        this.tile_height = tile_height;
     }
     Tileset.prototype.draw = function (data, tx, ty, x, y) {
-        var tile_size = this.tile_size;
-        data.ctx.drawImage(this.img, tx * tile_size, ty * tile_size, tile_size, tile_size, x, y, tile_size, tile_size);
+        var tile_width = this.tile_width;
+        var tile_height = this.tile_height;
+        data.ctx.drawImage(this.img, tx * tile_width, ty * tile_height, tile_width, tile_height, x, y, tile_width, tile_height);
     };
     return Tileset;
 }());

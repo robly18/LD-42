@@ -12,7 +12,7 @@ class PlayerMovementComponent {
       if (83 in data.keys) entity.velocity.y += 1;
       if (87 in data.keys) entity.velocity.y -= 1;
       if (entity.velocity.x != 0 || entity.velocity.y != 0) {
-        let sf = 0.5 / ( (v => Math.sqrt(v.x*v.x + v.y*v.y))(entity.velocity));
+        let sf = 0.2 / ( (v => Math.sqrt(v.x*v.x + v.y*v.y))(entity.velocity));
         entity.velocity.x *= sf;
         entity.velocity.y *= sf;
       }

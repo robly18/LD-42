@@ -5,6 +5,7 @@ class Entity {
 
   constructor(pos: Point, floating : boolean = false) {
     this.pos = pos;
+    this.velocity = new Point(0,0);
     this.floating = floating;
   }
 
