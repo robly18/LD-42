@@ -47,6 +47,30 @@ var Entity = (function () {
             this.movement.tick(data, this);
         if (!this.floating) {
             var pos = this.pos;
+            var belt_velocity = new Point(0, 0);
+            var prop_here = asteroid.map.get_prop(new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size)));
+            if (prop_here != null) {
+                var d = prop_here.belt_dir();
+                if (d != null) {
+                    switch (d) {
+                        case Facing.UP:
+                            belt_velocity.y -= BELT_SPEED_PXPERSEC / 1000;
+                            break;
+                        case Facing.DOWN:
+                            belt_velocity.y += BELT_SPEED_PXPERSEC / 1000;
+                            break;
+                        case Facing.RIGHT:
+                            belt_velocity.x += BELT_SPEED_PXPERSEC / 1000;
+                            break;
+                        case Facing.LEFT:
+                            belt_velocity.x -= BELT_SPEED_PXPERSEC / 1000;
+                            break;
+                    }
+                }
+            }
+            this.velocity.x += belt_velocity.x;
+            this.velocity.y += belt_velocity.y;
+            console.log(this.velocity.x, this.velocity.y, belt_velocity.x, belt_velocity.y);
             var newposx = new Point(pos.x + this.velocity.x * DT, pos.y);
             if (!asteroid.map.empty(newposx))
                 pos = newposx;
@@ -54,12 +78,13 @@ var Entity = (function () {
             if (!asteroid.map.empty(newposy))
                 pos = newposy;
             this.pos = pos;
+            this.velocity.x -= belt_velocity.x;
+            this.velocity.y -= belt_velocity.y;
         }
         else {
             this.pos.x += this.velocity.x * DT;
             this.pos.y += this.velocity.y * DT;
         }
-        console.log(this.pos.x, this.pos.y);
     };
     Entity.prototype.render = function (data, cam) {
         if (this.graphics != null)
@@ -163,6 +188,7 @@ var CreatureGraphicsComponent = (function () {
     return CreatureGraphicsComponent;
 }());
 var DT = 1000 / 60;
+var BELT_SPEED_PXPERSEC = 32;
 window.onload = function () {
     var game = new Game(document.getElementById('canvas'));
     game.start();
@@ -211,6 +237,11 @@ var Map = (function () {
             }
         }
         this.generate(3000);
+        this.add_prop(new Belt(new Point(3, 3), Facing.UP));
+        this.add_prop(new Belt(new Point(3, 2), Facing.RIGHT));
+        this.add_prop(new Belt(new Point(4, 2), Facing.RIGHT));
+        this.add_prop(new Belt(new Point(5, 2), Facing.DOWN));
+        this.add_prop(new Belt(new Point(5, 3), Facing.UP));
     };
     Map.prototype.render = function (data, cam) {
         var img = new Image();
@@ -283,6 +314,28 @@ var Map = (function () {
             return true;
         return (this.ground[i][j] == null);
     };
+    Map.prototype.add_prop = function (p) {
+        var i = p.pos.x;
+        var j = p.pos.y;
+        if (i in this.surface) {
+            if (j in this.surface[i]) {
+                alert("Trying to add prop to occupied space.");
+            }
+            else {
+                this.surface[i][j] = p;
+            }
+        }
+        else {
+            this.surface[i] = {};
+            this.surface[i][j] = p;
+        }
+    };
+    Map.prototype.get_prop = function (p) {
+        if (p.x in this.surface)
+            if (p.y in this.surface[p.x])
+                return this.surface[p.x][p.y];
+        return null;
+    };
     return Map;
 }());
 var Point = (function () {
@@ -329,9 +382,10 @@ var Prop = (function () {
         this.pos = pos;
     }
     Prop.prototype.render = function (data, ts, x, y) {
-        var _a = this.tilePos(), tx = _a[0], ty = _a[1];
+        var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
         ts.draw(data, tx, ty, x, y);
     };
+    Prop.prototype.belt_dir = function () { return null; };
     return Prop;
 }());
 var Mine = (function (_super) {
@@ -339,14 +393,25 @@ var Mine = (function (_super) {
     function Mine(pos) {
         return _super.call(this, pos) || this;
     }
-    Mine.prototype.render = function (data, ts, x, y) {
-        var _a = this.tilePos(), tx = _a[0], ty = _a[1];
-        ts.draw(data, tx, ty, x, y);
-    };
-    Mine.prototype.tilePos = function () {
+    Mine.prototype.tile_pos = function (data) {
         return [0, 1];
     };
     return Mine;
+}(Prop));
+var Belt = (function (_super) {
+    __extends(Belt, _super);
+    function Belt(pos, facing) {
+        var _this = _super.call(this, pos) || this;
+        _this.facing = facing;
+        return _this;
+    }
+    Belt.prototype.belt_dir = function () { return this.facing; };
+    Belt.prototype.tile_pos = function (data) {
+        var ty = this.facing;
+        var tx = 4 + Math.floor(data.curr_t() / 1000 * BELT_SPEED_PXPERSEC) % 4;
+        return [tx, ty];
+    };
+    return Belt;
 }(Prop));
 var State = (function () {
     function State(data) {

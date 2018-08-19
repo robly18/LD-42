@@ -58,6 +58,12 @@ class Map {
     }
 
     this.generate(3000);
+
+    this.add_prop(new Belt(new Point(3,3), Facing.UP));
+    this.add_prop(new Belt(new Point(3,2), Facing.RIGHT));
+    this.add_prop(new Belt(new Point(4,2), Facing.RIGHT));
+    this.add_prop(new Belt(new Point(5,2), Facing.DOWN));
+    this.add_prop(new Belt(new Point(5,3), Facing.UP));
   }
 
   public render(data : GameData, cam : Point) {
@@ -132,5 +138,27 @@ class Map {
     if (i < 0 || i >= this.width) return true;
     if (j < 0 || j >= this.width) return true;
     return (this.ground[i][j] == null);
+  }
+
+  public add_prop(p : Prop) {
+    let i = p.pos.x;
+    let j = p.pos.y;
+    if (i in this.surface) {
+      if (j in this.surface[i]) {
+        alert("Trying to add prop to occupied space.");
+      } else {
+        this.surface[i][j] = p;
+      }
+    } else {
+      this.surface[i] = {};
+      this.surface[i][j] = p;
+    }
+  }
+
+  public get_prop(p : Point) : Prop | null {
+    if (p.x in this.surface)
+      if (p.y in this.surface[p.x])
+        return this.surface[p.x][p.y];
+    return null;
   }
 }
