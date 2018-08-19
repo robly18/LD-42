@@ -120,7 +120,7 @@ var GameData = (function () {
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
-        this.state = new MenuState(this.data);
+        this.state = new PlayState(this.data);
     }
     Game.prototype.start = function () {
         this.loop();
@@ -241,7 +241,8 @@ var Map = (function () {
         this.add_prop(new Belt(new Point(3, 2), Facing.RIGHT));
         this.add_prop(new Belt(new Point(4, 2), Facing.RIGHT));
         this.add_prop(new Belt(new Point(5, 2), Facing.DOWN));
-        this.add_prop(new Belt(new Point(5, 3), Facing.UP));
+        this.add_prop(new Belt(new Point(5, 3), Facing.LEFT));
+        this.add_prop(new Belt(new Point(4, 3), Facing.LEFT));
     };
     Map.prototype.render = function (data, cam) {
         var img = new Image();
