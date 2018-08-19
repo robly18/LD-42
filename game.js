@@ -69,10 +69,8 @@ var Game = (function () {
     return Game;
 }());
 window.onload = function () {
-    var map = new Map(100, 100);
-    for (var i = 0; i < 100; i++)
-        for (var j = 0; j < 100; j++)
-            console.log(map.ground[i][j]);
+    var game = new Game(document.getElementById('canvas'));
+    game.start();
 };
 var tile_size = 32;
 var Resource;
