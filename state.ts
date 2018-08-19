@@ -40,17 +40,30 @@ class MenuState extends State {
 
 class PlayState extends State {
   asteroid : Asteroid;
+
+  cam : Point;
+
   constructor(data : GameData) {
     super(data);
     this.asteroid = new Asteroid(new Map(10,10,3));
+    this.cam = new Point(0,0);
   }
 
   public tick() : State {
+    let data = this.data;
+    let cam = this.cam;
+
+    if (68 in data.keys) cam.x += data.dt() * 0.1;
+    if (65 in data.keys) cam.x -= data.dt() * 0.1;
+    if (83 in data.keys) cam.y += data.dt() * 0.1;
+    if (87 in data.keys) cam.y -= data.dt() * 0.1;
     this.asteroid.tick();
     return this;
   }
   
   public render() {
-    this.asteroid.render(this.data);
+    this.data.ctx.fillStyle = "black";
+    this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
+    this.asteroid.render(this.data, this.cam);
   }
 }

@@ -14,9 +14,9 @@ var Asteroid = (function () {
     }
     Asteroid.prototype.tick = function () {
     };
-    Asteroid.prototype.render = function (data) {
+    Asteroid.prototype.render = function (data, cam) {
         var ctx = data.ctx;
-        this.map.render(data);
+        this.map.render(data, cam);
     };
     return Asteroid;
 }());
@@ -28,12 +28,16 @@ var Entity = (function () {
 }());
 var GameData = (function () {
     function GameData(canvas) {
+        var _this = this;
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.width = canvas.width;
         this.height = canvas.height;
         this.prev_t = Date.now();
         this.new_t = Date.now();
+        this.keys = {};
+        document.addEventListener("keydown", function (e) { _this.keys[e.keyCode] = true; });
+        document.addEventListener("keyup", function (e) { delete _this.keys[e.keyCode]; });
     }
     GameData.prototype.tick = function () {
         this.prev_t = this.new_t;
@@ -120,22 +124,21 @@ var Map = (function () {
             this.ground[i] = [];
             this.surface[i] = [];
             for (var j = 0; j < this.height; j++) {
-                this.ground[i][j] = null;
+                this.ground[i][j] = new Tile(Resource.MATTER, 100);
                 this.surface[i][j] = null;
             }
         }
-        this.generate(80);
     };
-    Map.prototype.render = function (data) {
+    Map.prototype.render = function (data, cam) {
         for (var i = 0; i < this.width; i++) {
             for (var j = 0; j < this.height; j++) {
                 var g = this.ground[i][j];
                 if (g != null) {
-                    g.render(data, this.tileset, i * tile_size, j * tile_size);
+                    g.render(data, this.tileset, i * tile_size - cam.x, j * tile_size - cam.y);
                 }
                 var p = this.surface[i][j];
                 if (p != null) {
-                    p.render(data, this.tileset, i * tile_size, j * tile_size);
+                    p.render(data, this.tileset, i * tile_size - cam.x, j * tile_size - cam.y);
                 }
             }
         }
@@ -255,14 +258,27 @@ var PlayState = (function (_super) {
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
         _this.asteroid = new Asteroid(new Map(10, 10, 3));
+        _this.cam = new Point(0, 0);
         return _this;
     }
     PlayState.prototype.tick = function () {
+        var data = this.data;
+        var cam = this.cam;
+        if (68 in data.keys)
+            cam.x += data.dt() * 0.1;
+        if (65 in data.keys)
+            cam.x -= data.dt() * 0.1;
+        if (83 in data.keys)
+            cam.y += data.dt() * 0.1;
+        if (87 in data.keys)
+            cam.y -= data.dt() * 0.1;
         this.asteroid.tick();
         return this;
     };
     PlayState.prototype.render = function () {
-        this.asteroid.render(this.data);
+        this.data.ctx.fillStyle = "black";
+        this.data.ctx.clearRect(0, 0, this.data.width, this.data.height);
+        this.asteroid.render(this.data, this.cam);
     };
     return PlayState;
 }(State));

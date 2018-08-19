@@ -8,8 +8,8 @@ class Asteroid {
   public tick() {
   }
 
-  public render(data : GameData) {
+  public render(data : GameData, cam : Point) {
     let ctx = data.ctx;
-    this.map.render(data);
+    this.map.render(data, cam);
   }
 }

@@ -7,6 +7,8 @@ class GameData {
   
   prev_t : number;
   new_t : number;
+
+  keys : { [id:number]: boolean };
   
   constructor(canvas : HTMLCanvasElement) {
     this.canvas = canvas;
@@ -18,6 +20,10 @@ class GameData {
 	
     this.prev_t = Date.now();
     this.new_t = Date.now();
+
+    this.keys = {};
+    document.addEventListener("keydown", e => {this.keys[e.keyCode] = true;});
+    document.addEventListener("keyup", e => {delete this.keys[e.keyCode];});
   }
   
   public tick() {

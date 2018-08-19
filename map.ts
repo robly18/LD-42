@@ -66,24 +66,24 @@ class Map {
       this.ground[i]  = [];
       this.surface[i] = [];
       for(let j = 0; j < this.height; j++) {
-        this.ground[i][j]  = null;
+        this.ground[i][j]  = new Tile(Resource.MATTER, 100);
         this.surface[i][j] = null;
       }
     }
 
-    this.generate(80);
+    //this.generate(80);
   }
 
-  public render(data : GameData) {
+  public render(data : GameData, cam : Point) {
     for(let i = 0; i < this.width; i++) {
       for(let j = 0; j < this.height; j++) {
         let g = this.ground[i][j]
         if (g != null) {
-          g.render(data, this.tileset, i*tile_size, j*tile_size);
+          g.render(data, this.tileset, i*tile_size - cam.x, j*tile_size - cam.y);
         }
         let p = this.surface[i][j];
         if (p != null) {
-          p.render(data, this.tileset, i*tile_size, j*tile_size);
+          p.render(data, this.tileset, i*tile_size - cam.x, j*tile_size - cam.y);
         }
       }
     }
