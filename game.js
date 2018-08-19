@@ -8,7 +8,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var dt = 1000 / 60;
 var GameData = (function () {
     function GameData(canvas) {
         this.canvas = canvas;
@@ -48,12 +47,8 @@ var Game = (function () {
     };
     return Game;
 }());
-var canvas;
-var ctx;
 window.onload = function () {
-    canvas = document.getElementById('canvas');
-    ctx = canvas.getContext('2d');
-    var game = new Game(canvas);
+    var game = new Game(document.getElementById('canvas'));
     game.start();
 };
 var State = (function () {
@@ -77,9 +72,16 @@ var MenuState = (function (_super) {
         while (this.carry_t > 1000) {
             this.carry_t -= 1000;
             this.secno += 1;
-            console.log("It has been ", this.secno, " seconds.");
         }
         return this;
+    };
+    MenuState.prototype.render = function () {
+        var ctx = this.data.ctx;
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, this.data.width, this.data.height);
+        ctx.fillStyle = "black";
+        ctx.font = "30px Arial";
+        ctx.fillText("It has been " + String(this.secno) + (this.secno == 1 ? " second." : " seconds."), 10, 50);
     };
     return MenuState;
 }(State));

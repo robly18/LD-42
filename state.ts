@@ -23,9 +23,17 @@ class MenuState extends State {
     while(this.carry_t > 1000) {
       this.carry_t -= 1000;
       this.secno += 1;
-      console.log("It has been ",this.secno," seconds.");
     }
     return this;
   }
   
+  render() {
+    let ctx = this.data.ctx;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0,0,this.data.width, this.data.height);
+    ctx.fillStyle = "black";
+    ctx.font = "30px Arial";
+    ctx.fillText("It has been "+String(this.secno)+(this.secno==1?" second.":" seconds."),10,50); 
+  }
 }
