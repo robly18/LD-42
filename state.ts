@@ -37,3 +37,20 @@ class MenuState extends State {
     ctx.fillText("It has been "+String(this.secno)+(this.secno==1?" second.":" seconds."),10,50); 
   }
 }
+
+class PlayState extends State {
+  asteroid : Asteroid;
+  constructor(data : GameData) {
+    super(data);
+    this.asteroid = new Asteroid(new Map(10,10));
+  }
+
+  tick() : State {
+    this.asteroid.tick();
+    return this;
+  }
+  
+  render() {
+    asteroid.render(this.data);
+  }
+}
