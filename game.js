@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -95,7 +98,7 @@ var GameData = (function () {
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
-        this.state = new MenuState(this.data);
+        this.state = new PlayState(this.data);
     }
     Game.prototype.start = function () {
         this.loop();
@@ -194,11 +197,11 @@ var Tile = (function () {
     return Tile;
 }());
 var Map = (function () {
-    function Map(width, height, chunk_size) {
+    function Map(width, height, max_gen) {
         this.tileset = new Tileset("assets/tile.png", tile_size);
         this.width = width;
         this.height = height;
-        this.chunk_size = chunk_size;
+        this.max_gen = max_gen;
         this.ground = [];
         this.surface = {};
         this.init();
@@ -210,7 +213,7 @@ var Map = (function () {
                 this.ground[i][j] = null;
             }
         }
-        this.generate(3000);
+        this.generate([100, 100, 100]);
     };
     Map.prototype.render = function (data, cam) {
         var img = new Image();
@@ -236,42 +239,56 @@ var Map = (function () {
             }
         }
     };
-    Map.prototype.generate = function (num_blocks) {
-        var cur_blocks = 0;
-        var seed;
+    Map.prototype.generate = function (req) {
         var queue = [];
-        seed = new Point(rand_int(this.width), rand_int(this.height));
-        this.ground[seed.x][seed.y] = new Tile(Resource.MATTER, 100);
-        queue.push(seed);
-        while (queue.length > 0 && cur_blocks < num_blocks) {
-            for (var i = 0; i < this.chunk_size && queue.length > 0; i++) {
-                var cur_pos = queue[0];
-                queue.shift();
+        var seed = new Point(rand_int(this.width), rand_int(this.height));
+        for (var k = 0; k < 3; k++) {
+            for (var i = 0; i < req[k]; i++) {
+                while (this.ground[seed.x][seed.y])
+                    seed = new Point(rand_int(this.width), rand_int(this.height));
+                console.log(seed);
+                console.log(this.ground[0]);
+                this.ground[seed.x][seed.y] = new Tile(k, 100);
                 var to_fill = [];
-                for (var j = 0; j < 4; j++)
-                    to_fill.push(rand_int(4));
+                for (var j = 0; j < 8; j++)
+                    to_fill.push([rand_int(3) - 1, rand_int(3) - 1]);
                 for (var _i = 0, to_fill_1 = to_fill; _i < to_fill_1.length; _i++) {
                     var idx = to_fill_1[_i];
-                    var new_pos = cur_pos;
-                    if (idx == 0)
-                        new_pos.x += 1;
-                    if (idx == 1)
-                        new_pos.x -= 1;
-                    if (idx == 2)
-                        new_pos.y += 1;
-                    if (idx == 3)
-                        new_pos.y -= 1;
-                    if (new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-                        this.ground[new_pos.x][new_pos.y] = new Tile(Resource.MATTER, 100);
-                        queue.push(new_pos);
+                    var new_pos = seed;
+                    new_pos.x += idx[0];
+                    new_pos.y += idx[1];
+                    if (i < req[k] && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
+                        this.ground[new_pos.x][new_pos.y] = new Tile(k, 100);
+                        queue.push([new_pos, 0]);
+                        i++;
                     }
                 }
-                cur_blocks++;
-            }
-            seed = new Point(rand_int(this.width), rand_int(this.height));
-            while (this.ground[seed.x][seed.y])
+                queue.push([seed, 0]);
                 seed = new Point(rand_int(this.width), rand_int(this.height));
-            queue = [seed];
+            }
+        }
+        while (queue.length > 0) {
+            var _a = queue[0], cur_pos = _a[0], cur_gen = _a[1];
+            queue.shift();
+            var to_fill = [];
+            for (var j = 0; j < 4; j++)
+                to_fill.push(rand_int(4));
+            for (var _b = 0, to_fill_2 = to_fill; _b < to_fill_2.length; _b++) {
+                var idx = to_fill_2[_b];
+                var new_pos = cur_pos;
+                if (idx == 0)
+                    new_pos.x += 1;
+                if (idx == 1)
+                    new_pos.x -= 1;
+                if (idx == 2)
+                    new_pos.y += 1;
+                if (idx == 3)
+                    new_pos.y -= 1;
+                if (cur_gen < this.max_gen && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
+                    this.ground[new_pos.x][new_pos.y] = new Tile(Resource.MATTER, 100);
+                    queue.push([new_pos, cur_gen + 1]);
+                }
+            }
         }
     };
     Map.prototype.empty = function (p) {
@@ -381,7 +398,7 @@ var PlayState = (function (_super) {
     __extends(PlayState, _super);
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
-        _this.asteroid = new Asteroid(new Map(100, 100, 10));
+        _this.asteroid = new Asteroid(new Map(100, 100, 25));
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
         return _this;
