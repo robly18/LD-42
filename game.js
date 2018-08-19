@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -151,7 +154,7 @@ var Map = (function () {
         this.ground[seed.x][seed.y] = new Tile(Resource.MATTER, 100);
         queue.push(seed);
         while (queue.length > 0 && cur_blocks < num_blocks) {
-            for (var i = 0; i < this.chunk_size; i++) {
+            for (var i = 0; i < this.chunk_size && queue.length > 0; i++) {
                 var cur_pos = queue[0];
                 queue.shift();
                 var to_fill = [];
@@ -175,6 +178,7 @@ var Map = (function () {
                 }
                 cur_blocks++;
             }
+            seed = new Point(rand_int(this.width), rand_int(this.height));
             while (this.ground[seed.x][seed.y])
                 seed = new Point(rand_int(this.width), rand_int(this.height));
             queue = [seed];

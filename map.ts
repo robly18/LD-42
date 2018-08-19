@@ -57,7 +57,7 @@ class Map {
     this.chunk_size = chunk_size;
 
     this.ground = [];
-    this.surface = []
+    this.surface = [];
     this.init();
   }
 
@@ -99,7 +99,7 @@ class Map {
     queue.push(seed);
 
     while(queue.length > 0 && cur_blocks < num_blocks) {
-      for(let i = 0; i < this.chunk_size; i++) {
+      for(let i = 0; i < this.chunk_size && queue.length > 0; i++) {
         let cur_pos : Point = queue[0];
         queue.shift();
 
@@ -122,6 +122,7 @@ class Map {
         cur_blocks++;
       }
 
+      seed = new Point(rand_int(this.width), rand_int(this.height));
       while(this.ground[seed.x][seed.y])
         seed = new Point(rand_int(this.width), rand_int(this.height));
       queue = [seed];
