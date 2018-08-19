@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -60,37 +57,6 @@ var Entity = (function () {
     };
     return Entity;
 }());
-var MovementComponent = (function () {
-    function MovementComponent() {
-    }
-    return MovementComponent;
-}());
-var PlayerMovementComponent = (function () {
-    function PlayerMovementComponent() {
-    }
-    PlayerMovementComponent.prototype.tick = function (data, entity) {
-        entity.velocity = new Point(0, 0);
-        if (68 in data.keys)
-            entity.velocity.x += 1;
-        if (65 in data.keys)
-            entity.velocity.x -= 1;
-        if (83 in data.keys)
-            entity.velocity.y += 1;
-        if (87 in data.keys)
-            entity.velocity.y -= 1;
-        if (entity.velocity.x != 0 || entity.velocity.y != 0) {
-            var sf = 0.5 / ((function (v) { return Math.sqrt(v.x * v.x + v.y * v.y); })(entity.velocity));
-            entity.velocity.x *= sf;
-            entity.velocity.y *= sf;
-        }
-    };
-    return PlayerMovementComponent;
-}());
-var GraphicsComponent = (function () {
-    function GraphicsComponent() {
-    }
-    return GraphicsComponent;
-}());
 var GameData = (function () {
     function GameData(canvas) {
         var _this = this;
@@ -122,8 +88,6 @@ var Game = (function () {
         this.state = new PlayState(this.data);
     }
     Game.prototype.start = function () {
-        this.data.tick();
-        this.data.tick();
         this.loop();
     };
     Game.prototype.loop = function () {
@@ -134,11 +98,16 @@ var Game = (function () {
     };
     return Game;
 }());
+var GraphicsComponent = (function () {
+    function GraphicsComponent() {
+    }
+    return GraphicsComponent;
+}());
+var DT = 1000 / 60;
 window.onload = function () {
     var game = new Game(document.getElementById('canvas'));
     game.start();
 };
-var DT = 1000 / 60;
 var tile_size = 32;
 var Resource;
 (function (Resource) {
@@ -270,6 +239,32 @@ var Point = (function () {
 function rand_int(b) {
     return Math.floor(Math.random() * b);
 }
+var MovementComponent = (function () {
+    function MovementComponent() {
+    }
+    return MovementComponent;
+}());
+var PlayerMovementComponent = (function () {
+    function PlayerMovementComponent() {
+    }
+    PlayerMovementComponent.prototype.tick = function (data, entity) {
+        entity.velocity = new Point(0, 0);
+        if (68 in data.keys)
+            entity.velocity.x += 1;
+        if (65 in data.keys)
+            entity.velocity.x -= 1;
+        if (83 in data.keys)
+            entity.velocity.y += 1;
+        if (87 in data.keys)
+            entity.velocity.y -= 1;
+        if (entity.velocity.x != 0 || entity.velocity.y != 0) {
+            var sf = 0.5 / ((function (v) { return Math.sqrt(v.x * v.x + v.y * v.y); })(entity.velocity));
+            entity.velocity.x *= sf;
+            entity.velocity.y *= sf;
+        }
+    };
+    return PlayerMovementComponent;
+}());
 var Prop = (function () {
     function Prop(pos) {
         this.pos = pos;
@@ -332,21 +327,19 @@ var PlayState = (function (_super) {
     __extends(PlayState, _super);
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
-        _this.asteroid = new Asteroid(new Map(100, 100, 30));
+        _this.asteroid = new Asteroid(new Map(100, 100, 10));
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
         return _this;
     }
     PlayState.prototype.tick = function () {
-        var data = this.data;
-        var cam = this.cam;
-        this.leftover_t += data.dt();
+        this.leftover_t += this.data.dt();
         while (this.leftover_t >= DT) {
             this.leftover_t -= DT;
-            this.asteroid.tick(data);
+            this.asteroid.tick(this.data);
             var player_pos = this.asteroid.player.pos;
-            cam.x = player_pos.x - data.width / 2;
-            cam.y = player_pos.y - data.height / 2;
+            this.cam.x = player_pos.x - this.data.width / 2;
+            this.cam.y = player_pos.y - this.data.height / 2;
         }
         return this;
     };
