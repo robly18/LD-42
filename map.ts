@@ -18,7 +18,7 @@ class Map {
   height : number;
 
   ground:  (Tile | null)[][];
-  surface: (Entity | null)[][];
+  surface: (Prop | null)[][];
 
   constructor(width : number, height : number) {
     this.width = width;

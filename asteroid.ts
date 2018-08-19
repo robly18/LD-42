@@ -7,4 +7,9 @@ class Asteroid {
 
   public tick() {
   }
+
+  public render(data : GameData) {
+    let ctx = data.ctx;
+    map.render(data);
+  }
 }
