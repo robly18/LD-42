@@ -99,7 +99,7 @@ var GameData = (function () {
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
-        this.state = new PlayState(this.data);
+        this.state = new MenuState(this.data);
     }
     Game.prototype.start = function () {
         this.loop();
@@ -324,25 +324,20 @@ var MenuState = (function (_super) {
     __extends(MenuState, _super);
     function MenuState(data) {
         var _this = _super.call(this, data) || this;
-        _this.carry_t = 0;
-        _this.secno = 0;
+        _this.x = 0;
         return _this;
     }
     MenuState.prototype.tick = function () {
-        this.carry_t += this.data.dt();
-        while (this.carry_t > 1000) {
-            this.carry_t -= 1000;
-            this.secno += 1;
-        }
+        this.x += this.data.dt() / 20;
+        this.x %= 800;
         return this;
     };
     MenuState.prototype.render = function () {
+        var background = new Image();
+        background.src = 'assets/menu_background.png';
         var ctx = this.data.ctx;
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, this.data.width, this.data.height);
-        ctx.fillStyle = "black";
-        ctx.font = "30px Arial";
-        ctx.fillText("It has been " + String(this.secno) + (this.secno == 1 ? " second." : " seconds."), 10, 50);
+        ctx.drawImage(background, this.x, 0);
+        ctx.drawImage(background, this.x - background.width, 0);
     };
     return MenuState;
 }(State));
