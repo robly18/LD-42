@@ -1,5 +1,3 @@
-let dt : number = 1000/ 60;
-
 class GameData {
   width : number;
   height : number;
