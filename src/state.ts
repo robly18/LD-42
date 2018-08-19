@@ -10,31 +10,26 @@ abstract class State {
 }
 
 class MenuState extends State {
-  carry_t : number;
-  secno : number;
+  x: number;
+
   constructor(data : GameData) {
     super(data);
-    this.carry_t = 0;
-    this.secno = 0;
+    this.x = 0;
   }
 
   public tick() : State {
-    this.carry_t += this.data.dt();
-    while(this.carry_t > 1000) {
-      this.carry_t -= 1000;
-      this.secno += 1;
-    }
+    this.x += this.data.dt()/20;
+    this.x %= 800;
     return this;
   }
   
   public render() {
-    let ctx = this.data.ctx;
+    let background = new Image();
+    background.src = 'assets/menu_background.png';
 
-    ctx.fillStyle = "white";
-    ctx.fillRect(0,0,this.data.width, this.data.height);
-    ctx.fillStyle = "black";
-    ctx.font = "30px Arial";
-    ctx.fillText("It has been "+String(this.secno)+(this.secno==1?" second.":" seconds."),10,50); 
+    let ctx = this.data.ctx;
+    ctx.drawImage(background, this.x, 0); 
+    ctx.drawImage(background, this.x-background.width, 0); 
   }
 }
 
