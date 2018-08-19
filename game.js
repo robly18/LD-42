@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -109,11 +106,11 @@ var Tileset = (function () {
     return Tileset;
 }());
 var Map = (function () {
-    function Map(width, height, chunck_size) {
+    function Map(width, height, chunk_size) {
         this.tileset = new Tileset("tile.png");
         this.width = width;
         this.height = height;
-        this.chunck_size = new_size;
+        this.chunk_size = chunk_size;
         this.ground = [];
         this.surface = [];
         this.init();
@@ -123,11 +120,11 @@ var Map = (function () {
             this.ground[i] = [];
             this.surface[i] = [];
             for (var j = 0; j < this.height; j++) {
-                this.ground[i][j] = new Tile(Resource.MATTER, 100);
+                this.ground[i][j] = null;
                 this.surface[i][j] = null;
             }
         }
-        this.generate();
+        this.generate(80);
     };
     Map.prototype.render = function (data) {
         for (var i = 0; i < this.width; i++) {
@@ -151,7 +148,7 @@ var Map = (function () {
         this.ground[seed.x][seed.y] = new Tile(Resource.MATTER, 100);
         queue.push(seed);
         while (queue.length > 0 && cur_blocks < num_blocks) {
-            for (var i = 0; i < this.chunck_size; i++) {
+            for (var i = 0; i < this.chunk_size; i++) {
                 var cur_pos = queue[0];
                 queue.shift();
                 var to_fill = [];
@@ -257,7 +254,7 @@ var PlayState = (function (_super) {
     __extends(PlayState, _super);
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
-        _this.asteroid = new Asteroid(new Map(10, 10));
+        _this.asteroid = new Asteroid(new Map(10, 10, 3));
         return _this;
     }
     PlayState.prototype.tick = function () {

@@ -42,19 +42,19 @@ class Tileset {
 class Map {
   width : number;
   height : number;
-  chunck_size: number;
+  chunk_size: number;
 
   ground:  (Tile | null)[][];
   surface: (Prop | null)[][];
 
   tileset : Tileset;
 
-  constructor(width : number, height : number, chunck_size: number) {
+  constructor(width : number, height : number, chunk_size: number) {
     this.tileset = new Tileset("tile.png");
 
     this.width = width;
     this.height = height;
-    this.chunck_size = new_size;
+    this.chunk_size = chunk_size;
 
     this.ground = [];
     this.surface = []
@@ -66,12 +66,12 @@ class Map {
       this.ground[i]  = [];
       this.surface[i] = [];
       for(let j = 0; j < this.height; j++) {
-        this.ground[i][j]  = new Tile(Resource.MATTER, 100);
+        this.ground[i][j]  = null;
         this.surface[i][j] = null;
       }
     }
 
-    this.generate();
+    this.generate(80);
   }
 
   public render(data : GameData) {
@@ -99,7 +99,7 @@ class Map {
     queue.push(seed);
 
     while(queue.length > 0 && cur_blocks < num_blocks) {
-      for(let i = 0; i < this.chunck_size; i++) {
+      for(let i = 0; i < this.chunk_size; i++) {
         let cur_pos : Point = queue[0];
         queue.shift();
 

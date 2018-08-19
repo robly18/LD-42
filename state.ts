@@ -42,7 +42,7 @@ class PlayState extends State {
   asteroid : Asteroid;
   constructor(data : GameData) {
     super(data);
-    this.asteroid = new Asteroid(new Map(10,10));
+    this.asteroid = new Asteroid(new Map(10,10,3));
   }
 
   public tick() : State {
