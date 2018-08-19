@@ -15,11 +15,13 @@ var Asteroid = (function () {
     function Asteroid(map) {
         this.map = map;
     }
-    Asteroid.prototype.tick = function () { };
+    Asteroid.prototype.tick = function () {
+    };
     return Asteroid;
 }());
 var Entity = (function () {
-    function Entity() {
+    function Entity(pos) {
+        this.pos = pos;
     }
     return Entity;
 }());
@@ -70,8 +72,25 @@ var Map = (function () {
     function Map(width, height) {
         this.width = width;
         this.height = height;
+        this.ground = [];
+        this.surface = [];
+        for (var i = 0; i < width; i++) {
+            this.ground[i] = [];
+            this.surface[i] = [];
+            for (var j = 0; j < height; j++) {
+                this.ground[i][j] = 'N000';
+                this.surface[i][j] = 'N000';
+            }
+        }
     }
     return Map;
+}());
+var Point = (function () {
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    return Point;
 }());
 var State = (function () {
     function State(data) {
