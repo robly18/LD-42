@@ -23,7 +23,6 @@ class Game {
   }
 
   private loop() {
-    console.log("Im alive")
     let cur_t : number = Date.now();
     let delta : number = cur_t - this.prev_t;
     while(delta > dt) {
