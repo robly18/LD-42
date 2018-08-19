@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "outFile": "game.js",
+        "outFile": "../game.js",
         "removeComments": true,
 		"strictNullChecks" : true,
 		"noImplicitAny" : true

@@ -17,7 +17,9 @@ var Asteroid = (function () {
         this.entities = [];
         this.player = new Entity(new Point(100, 100), false);
         this.player.movement = new PlayerMovementComponent();
-        this.player.graphics = new PlayerGraphicsComponent();
+        var img = new Image();
+        img.src = "assets/player.png";
+        this.player.graphics = new PlayerGraphicsComponent(img);
         this.entities.push(this.player);
     }
     Asteroid.prototype.tick = function (data) {
@@ -111,17 +113,16 @@ var Game = (function () {
     return Game;
 }());
 var GraphicsComponent = (function () {
-    function GraphicsComponent() {
+    function GraphicsComponent(img) {
     }
     return GraphicsComponent;
 }());
 var PlayerGraphicsComponent = (function () {
-    function PlayerGraphicsComponent() {
+    function PlayerGraphicsComponent(img) {
+        this.img = img;
     }
     PlayerGraphicsComponent.prototype.render = function (data, entity) {
-        var avatar = new Image();
-        avatar.src = 'player.png';
-        data.ctx.drawImage(avatar, (data.width - avatar.width) / 2, (data.height - avatar.height) / 2);
+        data.ctx.drawImage(this.img, (data.width - this.img.width) / 2, (data.height - this.img.height) / 2);
     };
     return PlayerGraphicsComponent;
 }());
@@ -158,7 +159,7 @@ var Tile = (function () {
 }());
 var Map = (function () {
     function Map(width, height, chunk_size) {
-        this.tileset = new Tileset("tile.png", tile_size);
+        this.tileset = new Tileset("assets/tile.png", tile_size);
         this.width = width;
         this.height = height;
         this.chunk_size = chunk_size;
@@ -177,7 +178,7 @@ var Map = (function () {
     };
     Map.prototype.render = function (data, cam) {
         var img = new Image();
-        img.src = 'background.png';
+        img.src = 'assets/background.png';
         data.ctx.drawImage(img, -100 - cam.x / 10, -100 - cam.y / 10);
         var nwx = Math.max(Math.floor(cam.x / tile_size), 0);
         var nwy = Math.max(Math.floor(cam.y / tile_size), 0);
