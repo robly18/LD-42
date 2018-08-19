@@ -8,6 +8,7 @@ class Asteroid {
     this.entities = [];
     this.player = new Entity(new Point(100,100), false);
     this.player.movement = new PlayerMovementComponent();
+    this.player.graphics = new PlayerGraphicsComponent();
     this.entities.push(this.player);
   }
 
@@ -20,5 +21,9 @@ class Asteroid {
   public render(data : GameData, cam : Point) {
     let ctx = data.ctx;
     this.map.render(data, cam);
+
+    for (let e of this.entities) {
+      e.render(data, cam);
+    }
   }
 }
