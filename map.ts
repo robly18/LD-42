@@ -49,21 +49,18 @@ class Map {
 
   tileset : Tileset;
 
-  constructor(width : number, height : number) {
+  constructor(width : number, height : number, chunck_size: number) {
     this.tileset = new Tileset("tile.png");
 
     this.width = width;
     this.height = height;
+    this.chunck_size = new_size;
 
     this.ground = [];
     this.surface = []
     this.init();
   }
 
-  public set_chunck_size(new_size: number) {
-    this.chunck_size = new_size;
-  }
-  
   private init() {
     for(let i = 0; i < this.width; i++) {
       this.ground[i]  = [];
@@ -73,6 +70,8 @@ class Map {
         this.surface[i][j] = null;
       }
     }
+
+    this.generate();
   }
 
   public render(data : GameData) {
