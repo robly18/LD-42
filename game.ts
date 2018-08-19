@@ -22,15 +22,16 @@ class GameData {
     this.new_t = Date.now();
   }
   
-  tick() {
-	this.prev_t = this.new_t;
-	this.new_t = Date.now();
+  public tick() {
+    this.prev_t = this.new_t;
+    this.new_t = Date.now();
   }
   
-  dt() : number {
-	return this.new_t - this.prev_t;
+  public dt() : number {
+    return this.new_t - this.prev_t;
   }
-  curr_t() : number {
+
+  public curr_t() : number {
     return this.new_t;
   }
 }
@@ -43,7 +44,6 @@ class Game {
     this.state = new MenuState(this.data);
   }
 
-
   public start() {
     this.data.tick(); this.data.tick();
     this.loop();
@@ -53,6 +53,7 @@ class Game {
     this.data.tick();
     this.state = this.state.tick();
     this.state.render();
+
     requestAnimationFrame(this.loop.bind(this));
   }
 }
