@@ -66,12 +66,12 @@ class Map {
       this.ground[i]  = [];
       this.surface[i] = [];
       for(let j = 0; j < this.height; j++) {
-        this.ground[i][j]  = new Tile(Resource.MATTER, 100);
+        this.ground[i][j]  = null;
         this.surface[i][j] = null;
       }
     }
 
-    //this.generate(80);
+    this.generate(3000);
   }
 
   public render(data : GameData, cam : Point) {

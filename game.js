@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -127,10 +124,11 @@ var Map = (function () {
             this.ground[i] = [];
             this.surface[i] = [];
             for (var j = 0; j < this.height; j++) {
-                this.ground[i][j] = new Tile(Resource.MATTER, 100);
+                this.ground[i][j] = null;
                 this.surface[i][j] = null;
             }
         }
+        this.generate(3000);
     };
     Map.prototype.render = function (data, cam) {
         for (var i = 0; i < this.width; i++) {
@@ -261,7 +259,7 @@ var PlayState = (function (_super) {
     __extends(PlayState, _super);
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
-        _this.asteroid = new Asteroid(new Map(10, 10, 3));
+        _this.asteroid = new Asteroid(new Map(100, 100, 10));
         _this.cam = new Point(0, 0);
         return _this;
     }
@@ -269,13 +267,13 @@ var PlayState = (function (_super) {
         var data = this.data;
         var cam = this.cam;
         if (68 in data.keys)
-            cam.x += data.dt() * 0.1;
+            cam.x += data.dt() * 0.5;
         if (65 in data.keys)
-            cam.x -= data.dt() * 0.1;
+            cam.x -= data.dt() * 0.5;
         if (83 in data.keys)
-            cam.y += data.dt() * 0.1;
+            cam.y += data.dt() * 0.5;
         if (87 in data.keys)
-            cam.y -= data.dt() * 0.1;
+            cam.y -= data.dt() * 0.5;
         this.asteroid.tick();
         return this;
     };
