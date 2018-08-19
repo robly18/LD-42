@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -68,6 +65,19 @@ window.onload = function () {
     var game = new Game(document.getElementById('canvas'));
     game.start();
 };
+var Resource;
+(function (Resource) {
+    Resource[Resource["MATTER"] = 0] = "MATTER";
+    Resource[Resource["ICE"] = 1] = "ICE";
+    Resource[Resource["URANIUM"] = 2] = "URANIUM";
+})(Resource || (Resource = {}));
+var Tile = (function () {
+    function Tile(type, qt) {
+        this.type = type;
+        this.quantity = qt;
+    }
+    return Tile;
+}());
 var Map = (function () {
     function Map(width, height) {
         this.width = width;
@@ -78,8 +88,8 @@ var Map = (function () {
             this.ground[i] = [];
             this.surface[i] = [];
             for (var j = 0; j < height; j++) {
-                this.ground[i][j] = 'N000';
-                this.surface[i][j] = 'N000';
+                this.ground[i][j] = new Tile(Resource.MATTER, 100);
+                this.surface[i][j] = null;
             }
         }
     }
