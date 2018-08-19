@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -106,17 +109,15 @@ var Tileset = (function () {
     return Tileset;
 }());
 var Map = (function () {
-    function Map(width, height) {
+    function Map(width, height, chunck_size) {
         this.tileset = new Tileset("tile.png");
         this.width = width;
         this.height = height;
+        this.chunck_size = new_size;
         this.ground = [];
         this.surface = [];
         this.init();
     }
-    Map.prototype.set_chunck_size = function (new_size) {
-        this.chunck_size = new_size;
-    };
     Map.prototype.init = function () {
         for (var i = 0; i < this.width; i++) {
             this.ground[i] = [];
@@ -126,6 +127,7 @@ var Map = (function () {
                 this.surface[i][j] = null;
             }
         }
+        this.generate();
     };
     Map.prototype.render = function (data) {
         for (var i = 0; i < this.width; i++) {
