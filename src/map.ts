@@ -1,8 +1,9 @@
-
 const tile_size = 32;
 
 enum Resource {
-  MATTER, ICE, URANIUM
+  MATTER  = 0,
+  ICE     = 1,
+  URANIUM = 2
 }
 
 class Tile {
@@ -30,19 +31,19 @@ class Tile {
 class Map {
   width : number;
   height : number;
-  chunk_size: number;
+  max_gen : number;
 
   ground:  (Tile | null)[][];
   surface: { [id : number] : { [id:number]:Prop } };
 
   tileset : Tileset;
 
-  constructor(width : number, height : number, chunk_size: number) {
+  constructor(width : number, height : number, max_gen: number) {
     this.tileset = new Tileset("assets/tile.png", tile_size);
 
     this.width = width;
     this.height = height;
-    this.chunk_size = chunk_size;
+    this.max_gen= max_gen;
 
     this.ground = [];
     this.surface = {};
@@ -57,8 +58,7 @@ class Map {
       }
     }
 
-    this.generate(3000);
-
+    this.generate([100,100,100]);
     this.add_prop(new Belt(new Point(3,3), Facing.UP));
     this.add_prop(new Belt(new Point(3,2), Facing.RIGHT));
     this.add_prop(new Belt(new Point(4,2), Facing.RIGHT));
@@ -93,43 +93,58 @@ class Map {
     }
   }
 
-  public generate(num_blocks: number) {
-    let cur_blocks = 0;
-    let seed: Point;
-    let queue: Point[] = [];
+  public generate(req: number[]) {
+    let queue: [Point, number][] = [];
+    let seed: Point = new Point(rand_int(this.width), rand_int(this.height));
 
-    seed = new Point(rand_int(this.width), rand_int(this.height));
-    this.ground[seed.x][seed.y] = new Tile(Resource.MATTER, 100);
-    queue.push(seed);
+    for(let k = 0; k < 3; k++) {
+      for(let i = 0; i < req[k]; i++) {
+        while(this.ground[seed.x][seed.y])
+          seed = new Point(rand_int(this.width), rand_int(this.height));
+        console.log(seed)
+        console.log(this.ground[0]);
+        this.ground[seed.x][seed.y] = new Tile(k, 100);
 
-    while(queue.length > 0 && cur_blocks < num_blocks) {
-      for(let i = 0; i < this.chunk_size && queue.length > 0; i++) {
-        let cur_pos : Point = queue[0];
-        queue.shift();
-
-        let to_fill : number[] = [];
-        for(let j = 0; j < 4; j++)
-          to_fill.push(rand_int(4));
+        let to_fill: number[][] = [];
+        for(let j = 0; j < 8; j++)
+          to_fill.push([rand_int(3)-1, rand_int(3)-1]);
 
         for(let idx of to_fill) {
-          let new_pos: Point = cur_pos;
-          if(idx == 0) new_pos.x += 1;
-          if(idx == 1) new_pos.x -= 1;
-          if(idx == 2) new_pos.y += 1;
-          if(idx == 3) new_pos.y -= 1;
+          let new_pos = seed;
+          new_pos.x += idx[0];
+          new_pos.y += idx[1];
 
-          if(new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-            this.ground[new_pos.x][new_pos.y] = new Tile(Resource.MATTER, 100);
-            queue.push(new_pos);
+          if(i < req[k] && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
+            this.ground[new_pos.x][new_pos.y] = new Tile(k, 100);
+            queue.push([new_pos, 0]);
+            i++;
           }
         }
-        cur_blocks++;
-      }
-
-      seed = new Point(rand_int(this.width), rand_int(this.height));
-      while(this.ground[seed.x][seed.y])
+        queue.push([seed,0]);
         seed = new Point(rand_int(this.width), rand_int(this.height));
-      queue = [seed];
+      }
+    }
+
+    while(queue.length > 0) {
+      let [cur_pos, cur_gen] = queue[0];
+      queue.shift();
+
+      let to_fill: number[] = [];
+      for(let j = 0; j < 4; j++)
+        to_fill.push(rand_int(4));
+
+      for(let idx of to_fill) {
+        let new_pos = cur_pos;
+        if(idx == 0) new_pos.x += 1;
+        if(idx == 1) new_pos.x -= 1;
+        if(idx == 2) new_pos.y += 1;
+        if(idx == 3) new_pos.y -= 1;
+
+        if(cur_gen < this.max_gen && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
+          this.ground[new_pos.x][new_pos.y] = new Tile(Resource.MATTER, 100);
+          queue.push([new_pos, cur_gen+1]);
+        }
+      }
     }
   }
 
