@@ -43,21 +43,29 @@ class PlayState extends State {
 
   cam : Point;
 
+  leftover_t : number;
+
   constructor(data : GameData) {
     super(data);
     this.asteroid = new Asteroid(new Map(100,100,10));
     this.cam = new Point(0,0);
+    this.leftover_t = 0;
   }
 
   public tick() : State {
     let data = this.data;
     let cam = this.cam;
 
-    if (68 in data.keys) cam.x += data.dt() * 0.5;
-    if (65 in data.keys) cam.x -= data.dt() * 0.5;
-    if (83 in data.keys) cam.y += data.dt() * 0.5;
-    if (87 in data.keys) cam.y -= data.dt() * 0.5;
-    this.asteroid.tick();
+    this.leftover_t += data.dt();
+    
+    while(this.leftover_t >= DT) {
+      this.leftover_t -= DT;
+      if (68 in data.keys) cam.x += DT * 0.5;
+      if (65 in data.keys) cam.x -= DT * 0.5;
+      if (83 in data.keys) cam.y += DT * 0.5;
+      if (87 in data.keys) cam.y -= DT * 0.5;
+      this.asteroid.tick();
+    }
     return this;
   }
   
