@@ -14,7 +14,7 @@ var Asteroid = (function () {
         this.entities = [];
         this.player = new Entity(new Point(100, 100), false);
         this.player.movement = new PlayerMovementComponent();
-        this.player.graphics = new CreatureGraphicsComponent("player.png");
+        this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
         this.entities.push(this.player);
     }
     Asteroid.prototype.tick = function (data) {
@@ -39,6 +39,7 @@ var Entity = (function () {
         this.movement = null;
         this.graphics = null;
         this.pos = pos;
+        this.velocity = new Point(0, 0);
         this.floating = floating;
     }
     Entity.prototype.tick = function (data, asteroid) {
@@ -112,13 +113,52 @@ var GraphicsComponent = (function () {
     }
     return GraphicsComponent;
 }());
+var Facing;
+(function (Facing) {
+    Facing[Facing["DOWN"] = 0] = "DOWN";
+    Facing[Facing["RIGHT"] = 1] = "RIGHT";
+    Facing[Facing["LEFT"] = 2] = "LEFT";
+    Facing[Facing["UP"] = 3] = "UP";
+})(Facing || (Facing = {}));
 var CreatureGraphicsComponent = (function () {
-    function CreatureGraphicsComponent(src) {
+    function CreatureGraphicsComponent(src, timePerFrame) {
+        if (timePerFrame === void 0) { timePerFrame = 100; }
+        this.facing = Facing.DOWN;
+        this.timeInThisState = 0;
+        this.tileset = new Tileset(src, 8, 16);
+        this.timePerFrame = timePerFrame;
     }
     CreatureGraphicsComponent.prototype.render = function (data, entity) {
-        var avatar = new Image();
-        avatar.src = 'player.png';
-        data.ctx.drawImage(avatar, (data.width - avatar.width) / 2, (data.height - avatar.height) / 2);
+        if (entity.velocity.x == 0 && entity.velocity.y == 0) {
+            this.timeInThisState = 0;
+        }
+        else {
+            var oldFacing = this.facing;
+            var newFacing = this.facingDirection(entity);
+            if (oldFacing == newFacing) {
+                this.timeInThisState += data.dt();
+            }
+            else {
+                this.timeInThisState = 0;
+                this.facing = newFacing;
+            }
+        }
+        var tx = Math.floor(this.timeInThisState / this.timePerFrame) % 4;
+        var tileset = this.tileset;
+        console.log(tx, this.facing);
+        tileset.draw(data, tx, this.facing, data.width / 2 - tileset.tile_width / 2, data.height / 2 - tileset.tile_height);
+    };
+    CreatureGraphicsComponent.prototype.facingDirection = function (entity) {
+        var v = entity.velocity;
+        if (v.y > 0)
+            return Facing.DOWN;
+        if (v.y < 0)
+            return Facing.UP;
+        if (v.x < 0)
+            return Facing.LEFT;
+        if (v.x > 0)
+            return Facing.RIGHT;
+        return Facing.DOWN;
     };
     return CreatureGraphicsComponent;
 }());
@@ -277,7 +317,7 @@ var PlayerMovementComponent = (function () {
         if (87 in data.keys)
             entity.velocity.y -= 1;
         if (entity.velocity.x != 0 || entity.velocity.y != 0) {
-            var sf = 0.5 / ((function (v) { return Math.sqrt(v.x * v.x + v.y * v.y); })(entity.velocity));
+            var sf = 0.2 / ((function (v) { return Math.sqrt(v.x * v.x + v.y * v.y); })(entity.velocity));
             entity.velocity.x *= sf;
             entity.velocity.y *= sf;
         }
@@ -380,7 +420,7 @@ var Tileset = (function () {
     Tileset.prototype.draw = function (data, tx, ty, x, y) {
         var tile_width = this.tile_width;
         var tile_height = this.tile_height;
-        data.ctx.drawImage(this.img, tx * tile_size, ty * tile_height, tile_width, tile_height, x, y, tile_width, tile_height);
+        data.ctx.drawImage(this.img, tx * tile_width, ty * tile_height, tile_width, tile_height, x, y, tile_width, tile_height);
     };
     return Tileset;
 }());

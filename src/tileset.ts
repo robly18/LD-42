@@ -12,7 +12,7 @@ class Tileset {
   draw(data : GameData, tx : number, ty : number, x : number, y : number) {
     let tile_width = this.tile_width;
     let tile_height = this.tile_height;
-    data.ctx.drawImage(this.img, tx*tile_size, ty*tile_height, tile_width, tile_height,
-                                  x          ,  y            , tile_width, tile_height);
+    data.ctx.drawImage(this.img, tx*tile_width, ty*tile_height, tile_width, tile_height,
+                                  x           ,  y            , tile_width, tile_height);
   }
 }

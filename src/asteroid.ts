@@ -8,7 +8,7 @@ class Asteroid {
     this.entities = [];
     this.player = new Entity(new Point(100,100), false);
     this.player.movement = new PlayerMovementComponent();
-    this.player.graphics = new CreatureGraphicsComponent("player.png");
+    this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
     this.entities.push(this.player);
   }
 
