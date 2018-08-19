@@ -27,47 +27,33 @@ class Tile {
   }
 }
 
-class Tileset {
-  img : HTMLImageElement;
-  constructor(src : string) {
-    this.img = new Image();
-    this.img.src = src;
-  }
-  draw(data : GameData, tx : number, ty : number, x : number, y : number) {
-    data.ctx.drawImage(this.img, tx*tile_size, ty*tile_size, tile_size, tile_size,
-                                  x          ,  y          , tile_size, tile_size);
-  }
-}
-
 class Map {
   width : number;
   height : number;
   chunk_size: number;
 
   ground:  (Tile | null)[][];
-  surface: (Prop | null)[][];
+  surface: { [id : number] : { [id:number]:Prop } };
 
   tileset : Tileset;
 
   constructor(width : number, height : number, chunk_size: number) {
-    this.tileset = new Tileset("tile.png");
+    this.tileset = new Tileset("tile.png", tile_size);
 
     this.width = width;
     this.height = height;
     this.chunk_size = chunk_size;
 
     this.ground = [];
-    this.surface = [];
+    this.surface = {};
     this.init();
   }
 
   private init() {
     for(let i = 0; i < this.width; i++) {
       this.ground[i]  = [];
-      this.surface[i] = [];
       for(let j = 0; j < this.height; j++) {
         this.ground[i][j]  = null;
-        this.surface[i][j] = null;
       }
     }
 
@@ -82,17 +68,19 @@ class Map {
     let nwy = Math.max(Math.floor(cam.y/tile_size), 0);
     let sex = Math.min(Math.ceil((cam.x + data.width)/tile_size), this.width-1);
     let sey = Math.min(Math.ceil((cam.y + data.height)/tile_size), this.height-1);
-    console.log(nwx, nwy, sex, sey);
     for(let i = nwx; i <= sex; i++) {
       for(let j = nwy; j <= sey; j++) {
         let g = this.ground[i][j]
         if (g != null) {
           g.render(data, this.tileset, i*tile_size - cam.x, j*tile_size - cam.y);
         }
-        let p = this.surface[i][j];
-        if (p != null) {
-          p.render(data, this.tileset, i*tile_size - cam.x, j*tile_size - cam.y);
-        }
+      }
+    }
+    for (let i in this.surface) {
+      let col = this.surface[i];
+      for (let j in col) {
+        let p : Prop = col[j];
+        p.render(data, this.tileset, p.pos.x*tile_size - cam.x, p.pos.y*tile_size - cam.y);
       }
     }
   }
@@ -135,5 +123,13 @@ class Map {
         seed = new Point(rand_int(this.width), rand_int(this.height));
       queue = [seed];
     }
+  }
+
+  public empty(p : Point) {
+    let i = Math.floor(p.x/tile_size);
+    let j = Math.floor(p.y/tile_size);
+    if (i < 0 || i >= this.width) return true;
+    if (j < 0 || j >= this.width) return true;
+    return (this.ground[i][j] == null);
   }
 }

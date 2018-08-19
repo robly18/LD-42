@@ -14,8 +14,16 @@ var __extends = (this && this.__extends) || (function () {
 var Asteroid = (function () {
     function Asteroid(map) {
         this.map = map;
+        this.entities = [];
+        this.player = new Entity(new Point(100, 100), false);
+        this.player.movement = new PlayerMovementComponent();
+        this.entities.push(this.player);
     }
-    Asteroid.prototype.tick = function () {
+    Asteroid.prototype.tick = function (data) {
+        for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
+            var e = _a[_i];
+            e.tick(data, this);
+        }
     };
     Asteroid.prototype.render = function (data, cam) {
         var ctx = data.ctx;
@@ -24,10 +32,64 @@ var Asteroid = (function () {
     return Asteroid;
 }());
 var Entity = (function () {
-    function Entity(pos) {
+    function Entity(pos, floating) {
+        if (floating === void 0) { floating = false; }
+        this.movement = null;
+        this.graphics = null;
         this.pos = pos;
+        this.floating = floating;
     }
+    Entity.prototype.tick = function (data, asteroid) {
+        if (this.movement != null)
+            this.movement.tick(data, this);
+        if (!this.floating) {
+            var pos = this.pos;
+            var newposx = new Point(pos.x + this.velocity.x * DT, pos.y);
+            if (!asteroid.map.empty(newposx))
+                pos = newposx;
+            var newposy = new Point(pos.x, pos.y + this.velocity.y * DT);
+            if (!asteroid.map.empty(newposy))
+                pos = newposy;
+            this.pos = pos;
+        }
+        else {
+            this.pos.x += this.velocity.x * DT;
+            this.pos.y += this.velocity.y * DT;
+        }
+        console.log(this.pos.x, this.pos.y);
+    };
     return Entity;
+}());
+var MovementComponent = (function () {
+    function MovementComponent() {
+    }
+    return MovementComponent;
+}());
+var PlayerMovementComponent = (function () {
+    function PlayerMovementComponent() {
+    }
+    PlayerMovementComponent.prototype.tick = function (data, entity) {
+        entity.velocity = new Point(0, 0);
+        if (68 in data.keys)
+            entity.velocity.x += 1;
+        if (65 in data.keys)
+            entity.velocity.x -= 1;
+        if (83 in data.keys)
+            entity.velocity.y += 1;
+        if (87 in data.keys)
+            entity.velocity.y -= 1;
+        if (entity.velocity.x != 0 || entity.velocity.y != 0) {
+            var sf = 0.5 / ((function (v) { return Math.sqrt(v.x * v.x + v.y * v.y); })(entity.velocity));
+            entity.velocity.x *= sf;
+            entity.velocity.y *= sf;
+        }
+    };
+    return PlayerMovementComponent;
+}());
+var GraphicsComponent = (function () {
+    function GraphicsComponent() {
+    }
+    return GraphicsComponent;
 }());
 var GameData = (function () {
     function GameData(canvas) {
@@ -76,6 +138,7 @@ window.onload = function () {
     var game = new Game(document.getElementById('canvas'));
     game.start();
 };
+var DT = 1000 / 60;
 var tile_size = 32;
 var Resource;
 (function (Resource) {
@@ -102,33 +165,21 @@ var Tile = (function () {
     };
     return Tile;
 }());
-var Tileset = (function () {
-    function Tileset(src) {
-        this.img = new Image();
-        this.img.src = src;
-    }
-    Tileset.prototype.draw = function (data, tx, ty, x, y) {
-        data.ctx.drawImage(this.img, tx * tile_size, ty * tile_size, tile_size, tile_size, x, y, tile_size, tile_size);
-    };
-    return Tileset;
-}());
 var Map = (function () {
     function Map(width, height, chunk_size) {
-        this.tileset = new Tileset("tile.png");
+        this.tileset = new Tileset("tile.png", tile_size);
         this.width = width;
         this.height = height;
         this.chunk_size = chunk_size;
         this.ground = [];
-        this.surface = [];
+        this.surface = {};
         this.init();
     }
     Map.prototype.init = function () {
         for (var i = 0; i < this.width; i++) {
             this.ground[i] = [];
-            this.surface[i] = [];
             for (var j = 0; j < this.height; j++) {
                 this.ground[i][j] = null;
-                this.surface[i][j] = null;
             }
         }
         this.generate(3000);
@@ -141,17 +192,19 @@ var Map = (function () {
         var nwy = Math.max(Math.floor(cam.y / tile_size), 0);
         var sex = Math.min(Math.ceil((cam.x + data.width) / tile_size), this.width - 1);
         var sey = Math.min(Math.ceil((cam.y + data.height) / tile_size), this.height - 1);
-        console.log(nwx, nwy, sex, sey);
         for (var i = nwx; i <= sex; i++) {
             for (var j = nwy; j <= sey; j++) {
                 var g = this.ground[i][j];
                 if (g != null) {
                     g.render(data, this.tileset, i * tile_size - cam.x, j * tile_size - cam.y);
                 }
-                var p = this.surface[i][j];
-                if (p != null) {
-                    p.render(data, this.tileset, i * tile_size - cam.x, j * tile_size - cam.y);
-                }
+            }
+        }
+        for (var i in this.surface) {
+            var col = this.surface[i];
+            for (var j in col) {
+                var p = col[j];
+                p.render(data, this.tileset, p.pos.x * tile_size - cam.x, p.pos.y * tile_size - cam.y);
             }
         }
     };
@@ -192,6 +245,15 @@ var Map = (function () {
                 seed = new Point(rand_int(this.width), rand_int(this.height));
             queue = [seed];
         }
+    };
+    Map.prototype.empty = function (p) {
+        var i = Math.floor(p.x / tile_size);
+        var j = Math.floor(p.y / tile_size);
+        if (i < 0 || i >= this.width)
+            return true;
+        if (j < 0 || j >= this.width)
+            return true;
+        return (this.ground[i][j] == null);
     };
     return Map;
 }());
@@ -272,20 +334,20 @@ var PlayState = (function (_super) {
         var _this = _super.call(this, data) || this;
         _this.asteroid = new Asteroid(new Map(100, 100, 10));
         _this.cam = new Point(0, 0);
+        _this.leftover_t = 0;
         return _this;
     }
     PlayState.prototype.tick = function () {
         var data = this.data;
         var cam = this.cam;
-        if (68 in data.keys)
-            cam.x += data.dt() * 0.5;
-        if (65 in data.keys)
-            cam.x -= data.dt() * 0.5;
-        if (83 in data.keys)
-            cam.y += data.dt() * 0.5;
-        if (87 in data.keys)
-            cam.y -= data.dt() * 0.5;
-        this.asteroid.tick();
+        this.leftover_t += data.dt();
+        while (this.leftover_t >= DT) {
+            this.leftover_t -= DT;
+            this.asteroid.tick(data);
+            var player_pos = this.asteroid.player.pos;
+            cam.x = player_pos.x - data.width / 2;
+            cam.y = player_pos.y - data.height / 2;
+        }
         return this;
     };
     PlayState.prototype.render = function () {
@@ -295,3 +357,15 @@ var PlayState = (function (_super) {
     };
     return PlayState;
 }(State));
+var Tileset = (function () {
+    function Tileset(src, tile_size) {
+        this.img = new Image();
+        this.img.src = src;
+        this.tile_size = tile_size;
+    }
+    Tileset.prototype.draw = function (data, tx, ty, x, y) {
+        var tile_size = this.tile_size;
+        data.ctx.drawImage(this.img, tx * tile_size, ty * tile_size, tile_size, tile_size, x, y, tile_size, tile_size);
+    };
+    return Tileset;
+}());
