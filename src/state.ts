@@ -41,7 +41,7 @@ class PlayState extends State {
 
   constructor(data : GameData) {
     super(data);
-    this.asteroid = new Asteroid(new Map(100,100,10));
+    this.asteroid = new Asteroid(new Map(100,100,25));
     this.cam = new Point(0,0);
     this.leftover_t = 0;
   }
