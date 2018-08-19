@@ -65,8 +65,10 @@ var Game = (function () {
     return Game;
 }());
 window.onload = function () {
-    var game = new Game(document.getElementById('canvas'));
-    game.start();
+    var map = new Map(100, 100);
+    for (var i = 0; i < 100; i++)
+        for (var j = 0; j < 100; j++)
+            console.log(map.ground[i][j]);
 };
 var Map = (function () {
     function Map(width, height) {
@@ -83,6 +85,8 @@ var Map = (function () {
             }
         }
     }
+    Map.prototype.generate = function () {
+    };
     return Map;
 }());
 var Point = (function () {
