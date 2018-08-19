@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -131,6 +134,9 @@ var Map = (function () {
         this.generate(3000);
     };
     Map.prototype.render = function (data, cam) {
+        var img = new Image();
+        img.src = 'background.png';
+        data.ctx.drawImage(img, -100 - cam.x / 50, -100 - cam.y / 50);
         var nwx = Math.max(Math.floor(cam.x / tile_size), 0);
         var nwy = Math.max(Math.floor(cam.y / tile_size), 0);
         var sex = Math.min(Math.ceil((cam.x + data.width) / tile_size), this.width - 1);

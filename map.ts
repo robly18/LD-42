@@ -75,6 +75,9 @@ class Map {
   }
 
   public render(data : GameData, cam : Point) {
+    let img = new Image();
+    img.src = 'background.png';
+    data.ctx.drawImage(img, -100 - cam.x/50, -100 - cam.y/50);
     let nwx = Math.max(Math.floor(cam.x/tile_size), 0);
     let nwy = Math.max(Math.floor(cam.y/tile_size), 0);
     let sex = Math.min(Math.ceil((cam.x + data.width)/tile_size), this.width-1);
