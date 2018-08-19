@@ -2,6 +2,7 @@ class Entity {
   pos : Point;
   velocity : Point;
   floating : boolean;
+
   constructor(pos: Point, floating : boolean = false) {
     this.pos = pos;
     this.floating = floating;
@@ -22,6 +23,10 @@ class Entity {
       this.pos.y += this.velocity.y*DT;
     }
     console.log(this.pos.x, this.pos.y);
+  }
+
+  public render(data: GameData, cam: Point) {
+    if (this.graphics != null) this.graphics.render(data, this);
   }
 
   movement : MovementComponent | null = null;

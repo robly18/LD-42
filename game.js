@@ -14,6 +14,7 @@ var Asteroid = (function () {
         this.entities = [];
         this.player = new Entity(new Point(100, 100), false);
         this.player.movement = new PlayerMovementComponent();
+        this.player.graphics = new CreatureGraphicsComponent("player.png");
         this.entities.push(this.player);
     }
     Asteroid.prototype.tick = function (data) {
@@ -25,6 +26,10 @@ var Asteroid = (function () {
     Asteroid.prototype.render = function (data, cam) {
         var ctx = data.ctx;
         this.map.render(data, cam);
+        for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
+            var e = _a[_i];
+            e.render(data, cam);
+        }
     };
     return Asteroid;
 }());
@@ -54,6 +59,10 @@ var Entity = (function () {
             this.pos.y += this.velocity.y * DT;
         }
         console.log(this.pos.x, this.pos.y);
+    };
+    Entity.prototype.render = function (data, cam) {
+        if (this.graphics != null)
+            this.graphics.render(data, this);
     };
     return Entity;
 }());
@@ -102,6 +111,16 @@ var GraphicsComponent = (function () {
     function GraphicsComponent() {
     }
     return GraphicsComponent;
+}());
+var CreatureGraphicsComponent = (function () {
+    function CreatureGraphicsComponent(src) {
+    }
+    CreatureGraphicsComponent.prototype.render = function (data, entity) {
+        var avatar = new Image();
+        avatar.src = 'player.png';
+        data.ctx.drawImage(avatar, (data.width - avatar.width) / 2, (data.height - avatar.height) / 2);
+    };
+    return CreatureGraphicsComponent;
 }());
 var DT = 1000 / 60;
 window.onload = function () {
@@ -351,14 +370,17 @@ var PlayState = (function (_super) {
     return PlayState;
 }(State));
 var Tileset = (function () {
-    function Tileset(src, tile_size) {
+    function Tileset(src, tile_width, tile_height) {
+        if (tile_height === void 0) { tile_height = tile_width; }
         this.img = new Image();
         this.img.src = src;
-        this.tile_size = tile_size;
+        this.tile_width = tile_width;
+        this.tile_height = tile_height;
     }
     Tileset.prototype.draw = function (data, tx, ty, x, y) {
-        var tile_size = this.tile_size;
-        data.ctx.drawImage(this.img, tx * tile_size, ty * tile_size, tile_size, tile_size, x, y, tile_size, tile_size);
+        var tile_width = this.tile_width;
+        var tile_height = this.tile_height;
+        data.ctx.drawImage(this.img, tx * tile_size, ty * tile_height, tile_width, tile_height, x, y, tile_width, tile_height);
     };
     return Tileset;
 }());
