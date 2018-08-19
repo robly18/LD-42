@@ -134,6 +134,10 @@ var Map = (function () {
                 if (g != null) {
                     g.render(data, this.tileset, i * tile_size, j * tile_size);
                 }
+                var p = this.surface[i][j];
+                if (p != null) {
+                    p.render(data, this.tileset, i * tile_size, j * tile_size);
+                }
             }
         }
     };
@@ -193,8 +197,26 @@ var Prop = (function () {
     function Prop(pos) {
         this.pos = pos;
     }
+    Prop.prototype.render = function (data, ts, x, y) {
+        var _a = this.tilePos(), tx = _a[0], ty = _a[1];
+        ts.draw(data, tx, ty, x, y);
+    };
     return Prop;
 }());
+var Mine = (function (_super) {
+    __extends(Mine, _super);
+    function Mine(pos) {
+        return _super.call(this, pos) || this;
+    }
+    Mine.prototype.render = function (data, ts, x, y) {
+        var _a = this.tilePos(), tx = _a[0], ty = _a[1];
+        ts.draw(data, tx, ty, x, y);
+    };
+    Mine.prototype.tilePos = function () {
+        return [0, 1];
+    };
+    return Mine;
+}(Prop));
 var State = (function () {
     function State(data) {
         this.data = data;

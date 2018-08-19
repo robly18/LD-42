@@ -82,7 +82,10 @@ class Map {
         if (g != null) {
           g.render(data, this.tileset, i*tile_size, j*tile_size);
         }
-        //this.surface[i][j].render(data, this.tileset, i*tilesize, j*tilesize);
+        let p = this.surface[i][j];
+        if (p != null) {
+          p.render(data, this.tileset, i*tile_size, j*tile_size);
+        }
       }
     }
   }
