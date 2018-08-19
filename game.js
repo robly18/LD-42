@@ -155,7 +155,7 @@ var Tile = (function () {
 }());
 var Map = (function () {
     function Map(width, height, chunk_size) {
-        this.tileset = new Tileset("tile.png", tile_size);
+        this.tileset = new Tileset("assets/tile.png", tile_size);
         this.width = width;
         this.height = height;
         this.chunk_size = chunk_size;
@@ -174,7 +174,7 @@ var Map = (function () {
     };
     Map.prototype.render = function (data, cam) {
         var img = new Image();
-        img.src = 'background.png';
+        img.src = 'assets/background.png';
         data.ctx.drawImage(img, -100 - cam.x / 10, -100 - cam.y / 10);
         var nwx = Math.max(Math.floor(cam.x / tile_size), 0);
         var nwy = Math.max(Math.floor(cam.y / tile_size), 0);

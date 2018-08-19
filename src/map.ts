@@ -38,7 +38,7 @@ class Map {
   tileset : Tileset;
 
   constructor(width : number, height : number, chunk_size: number) {
-    this.tileset = new Tileset("tile.png", tile_size);
+    this.tileset = new Tileset("assets/tile.png", tile_size);
 
     this.width = width;
     this.height = height;
@@ -62,7 +62,7 @@ class Map {
 
   public render(data : GameData, cam : Point) {
     let img = new Image();
-    img.src = 'background.png';
+    img.src = 'assets/background.png';
     data.ctx.drawImage(img, -100 - cam.x/10, -100 - cam.y/10);
 
     let nwx = Math.max(Math.floor(cam.x/tile_size), 0);
