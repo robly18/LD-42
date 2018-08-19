@@ -58,19 +58,12 @@ class Map {
       }
     }
 
-<<<<<<< HEAD
     this.generate([100,100,100]);
-||||||| merged common ancestors
-    this.generate(3000);
-=======
-    this.generate(3000);
-
     this.add_prop(new Belt(new Point(3,3), Facing.UP));
     this.add_prop(new Belt(new Point(3,2), Facing.RIGHT));
     this.add_prop(new Belt(new Point(4,2), Facing.RIGHT));
     this.add_prop(new Belt(new Point(5,2), Facing.DOWN));
     this.add_prop(new Belt(new Point(5,3), Facing.UP));
->>>>>>> 5f6d5491946583b6adbdf8b7a4b516ed9f4b2e2b
   }
 
   public render(data : GameData, cam : Point) {
