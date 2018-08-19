@@ -21,12 +21,12 @@ class GameData {
   }
   
   tick() {
-	this.prev_t = this.new_t;
-	this.new_t = Date.now();
+    this.prev_t = this.new_t;
+    this.new_t = Date.now();
   }
   
   dt() : number {
-	return this.new_t - this.prev_t;
+    return this.new_t - this.prev_t;
   }
   curr_t() : number {
     return this.new_t;
