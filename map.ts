@@ -27,25 +27,13 @@ class Tile {
   }
 }
 
-class Tileset {
-  img : HTMLImageElement;
-  constructor(src : string) {
-    this.img = new Image();
-    this.img.src = src;
-  }
-  draw(data : GameData, tx : number, ty : number, x : number, y : number) {
-    data.ctx.drawImage(this.img, tx*tile_size, ty*tile_size, tile_size, tile_size,
-                                  x          ,  y          , tile_size, tile_size);
-  }
-}
-
 class Map {
   width : number;
   height : number;
   chunk_size: number;
 
   ground:  (Tile | null)[][];
-  surface: (Prop | null)[][];
+  surface: { [id : Point] : Prop };
 
   tileset : Tileset;
 
@@ -62,12 +50,11 @@ class Map {
   }
 
   private init() {
+    surface = {};
     for(let i = 0; i < this.width; i++) {
       this.ground[i]  = [];
-      this.surface[i] = [];
       for(let j = 0; j < this.height; j++) {
         this.ground[i][j]  = null;
-        this.surface[i][j] = null;
       }
     }
 
