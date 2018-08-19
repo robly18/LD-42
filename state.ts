@@ -6,7 +6,7 @@ abstract class State {
   }
 
   public tick() : State {return this;}
-  render() {}
+  public render() {}
 }
 
 class MenuState extends State {
@@ -40,7 +40,6 @@ class MenuState extends State {
 
 class PlayState extends State {
   asteroid : Asteroid;
-
   cam : Point;
 
   leftover_t : number;
@@ -53,17 +52,15 @@ class PlayState extends State {
   }
 
   public tick() : State {
-    let data = this.data;
-    let cam = this.cam;
-
-    this.leftover_t += data.dt();
+    this.leftover_t += this.data.dt();
     
     while(this.leftover_t >= DT) {
       this.leftover_t -= DT;
-      this.asteroid.tick(data);
+      this.asteroid.tick(this.data);
+
       let player_pos = this.asteroid.player.pos;
-      cam.x = player_pos.x - data.width/2;
-      cam.y = player_pos.y - data.height/2;
+      this.cam.x = player_pos.x - this.data.width/2;
+      this.cam.y = player_pos.y - this.data.height/2;
     }
     return this;
   }

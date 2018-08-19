@@ -17,7 +17,6 @@ class GameData {
     this.width = canvas.width;
     this.height = canvas.height;
 	
-	
     this.prev_t = Date.now();
     this.new_t = Date.now();
 
@@ -49,7 +48,6 @@ class Game {
   }
 
   public start() {
-    this.data.tick(); this.data.tick();
     this.loop();
   }
 

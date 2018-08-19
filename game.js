@@ -187,7 +187,7 @@ var Map = (function () {
     Map.prototype.render = function (data, cam) {
         var img = new Image();
         img.src = 'background.png';
-        data.ctx.drawImage(img, -100 - cam.x / 50, -100 - cam.y / 50);
+        data.ctx.drawImage(img, -100 - cam.x / 10, -100 - cam.y / 10);
         var nwx = Math.max(Math.floor(cam.x / tile_size), 0);
         var nwy = Math.max(Math.floor(cam.y / tile_size), 0);
         var sex = Math.min(Math.ceil((cam.x + data.width) / tile_size), this.width - 1);
@@ -332,7 +332,7 @@ var PlayState = (function (_super) {
     __extends(PlayState, _super);
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
-        _this.asteroid = new Asteroid(new Map(100, 100, 10));
+        _this.asteroid = new Asteroid(new Map(100, 100, 30));
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
         return _this;
