@@ -14,6 +14,10 @@ var Asteroid = (function () {
     }
     Asteroid.prototype.tick = function () {
     };
+    Asteroid.prototype.render = function (data) {
+        var ctx = data.ctx;
+        this.map.render(data);
+    };
     return Asteroid;
 }());
 var Entity = (function () {
@@ -46,7 +50,7 @@ var GameData = (function () {
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
-        this.state = new MenuState(this.data);
+        this.state = new PlayState(this.data);
     }
     Game.prototype.start = function () {
         this.data.tick();
@@ -65,6 +69,7 @@ window.onload = function () {
     var game = new Game(document.getElementById('canvas'));
     game.start();
 };
+var tile_size = 32;
 var Resource;
 (function (Resource) {
     Resource[Resource["MATTER"] = 0] = "MATTER";
@@ -76,10 +81,33 @@ var Tile = (function () {
         this.type = type;
         this.quantity = qt;
     }
+    Tile.prototype.render = function (data, ts, x, y) {
+        var _a = this.tilePos(), tx = _a[0], ty = _a[1];
+        ts.draw(data, tx, ty, x, y);
+    };
+    Tile.prototype.tilePos = function () {
+        switch (this.type) {
+            case Resource.MATTER: return [1, 0];
+            case Resource.ICE: return [2, 0];
+            case Resource.URANIUM: return [3, 0];
+            default: return [0, 0];
+        }
+    };
     return Tile;
+}());
+var Tileset = (function () {
+    function Tileset(src) {
+        this.img = new Image();
+        this.img.src = src;
+    }
+    Tileset.prototype.draw = function (data, tx, ty, x, y) {
+        data.ctx.drawImage(this.img, tx * tile_size, ty * tile_size, tile_size, tile_size, x, y, tile_size, tile_size);
+    };
+    return Tileset;
 }());
 var Map = (function () {
     function Map(width, height) {
+        this.tileset = new Tileset("tile.png");
         this.width = width;
         this.height = height;
         this.ground = [];
@@ -93,6 +121,16 @@ var Map = (function () {
             }
         }
     }
+    Map.prototype.render = function (data) {
+        for (var i = 0; i < this.width; i++) {
+            for (var j = 0; j < this.height; j++) {
+                var g = this.ground[i][j];
+                if (g != null) {
+                    g.render(data, this.tileset, i * tile_size, j * tile_size);
+                }
+            }
+        }
+    };
     return Map;
 }());
 var Point = (function () {
@@ -101,6 +139,12 @@ var Point = (function () {
         this.y = y;
     }
     return Point;
+}());
+var Prop = (function () {
+    function Prop(pos) {
+        this.pos = pos;
+    }
+    return Prop;
 }());
 var State = (function () {
     function State(data) {
@@ -135,4 +179,20 @@ var MenuState = (function (_super) {
         ctx.fillText("It has been " + String(this.secno) + (this.secno == 1 ? " second." : " seconds."), 10, 50);
     };
     return MenuState;
+}(State));
+var PlayState = (function (_super) {
+    __extends(PlayState, _super);
+    function PlayState(data) {
+        var _this = _super.call(this, data) || this;
+        _this.asteroid = new Asteroid(new Map(10, 10));
+        return _this;
+    }
+    PlayState.prototype.tick = function () {
+        this.asteroid.tick();
+        return this;
+    };
+    PlayState.prototype.render = function () {
+        this.asteroid.render(this.data);
+    };
+    return PlayState;
 }(State));

@@ -51,6 +51,6 @@ class PlayState extends State {
   }
   
   render() {
-    asteroid.render(this.data);
+    this.asteroid.render(this.data);
   }
 }

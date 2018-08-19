@@ -39,7 +39,7 @@ class Game {
   state : State;
   constructor(canvas : HTMLCanvasElement) {
     this.data = new GameData(canvas);
-    this.state = new MenuState(this.data);
+    this.state = new PlayState(this.data);
   }
 
   public start() {
