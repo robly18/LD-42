@@ -721,8 +721,8 @@ var PlayState = (function (_super) {
             this.leftover_t -= DT;
             this.asteroid.tick(this.data, this.player_data, this.cam);
             var player_pos = this.asteroid.player.pos;
-            this.cam.x = player_pos.x - this.data.width / 2;
-            this.cam.y = player_pos.y - this.data.height / 2;
+            this.cam.x = Math.floor(player_pos.x - this.data.width / 2);
+            this.cam.y = Math.floor(player_pos.y - this.data.height / 2);
             for (var _i = 0, _a = this.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
                 E.tick();

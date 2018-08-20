@@ -84,8 +84,8 @@ class PlayState extends State {
       this.asteroid.tick(this.data, this.player_data, this.cam);
 
       let player_pos = this.asteroid.player.pos;
-      this.cam.x = player_pos.x - this.data.width/2;
-      this.cam.y = player_pos.y - this.data.height/2;
+      this.cam.x = Math.floor(player_pos.x - this.data.width/2);
+      this.cam.y = Math.floor(player_pos.y - this.data.height/2);
       for(let E of this.UI) E.tick();
     }
     return this;
