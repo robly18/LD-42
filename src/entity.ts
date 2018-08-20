@@ -51,9 +51,26 @@ class Entity {
   }
 
   public render(data: GameData, cam: Point) {
-    if (this.graphics != null) this.graphics.render(data, this);
+    if (this.graphics != null) this.graphics.render(data, this, cam);
   }
 
+  item     : ItemComponent     | null = null;
   movement : MovementComponent | null = null;
   graphics : GraphicsComponent | null = null;
+}
+
+class ItemComponent {
+  t : Resource;
+  constructor(t : Resource) {
+    this.t = t;
+  }
+}
+
+let itemtileset : Tileset;
+
+function make_item(c : Point, type : Resource) { //makes an item of this type of resource at this place
+  let e = new Entity(new Point( (c.x + Math.random())*tile_size, (c.y + Math.random())*tile_size))
+  e.item = new ItemComponent(type);
+  e.graphics = new StaticGraphicsComponent(itemtileset, type, 0);
+  return e;
 }
