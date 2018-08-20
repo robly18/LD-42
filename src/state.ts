@@ -42,7 +42,6 @@ enum BuildingType {
 class PlayerData {
   selected_building : BuildingType = BuildingType.MINE;
   selected_direction : Facing = Facing.UP;
-=======
 
   building_materials : number;
   constructor(){
@@ -75,7 +74,6 @@ class PlayState extends State {
     this.leftover_t = 0;
     this.UI = [];
     let button_tileset = new Tileset('asset/test_button.ts', 32);
-    let test_button = new Button(button_tileset);
   }
 
   public tick() : State {

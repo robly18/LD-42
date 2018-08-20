@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -46,9 +43,8 @@ var Asteroid = (function () {
         var mpos_in_space = data.mpos.plus(cam);
         var delta = mpos_in_space.minus(this.player.pos);
         this.map.render_background(data, cam);
-        if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+        if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE)
             this.map.render_ghost(data, mpos_in_space, player_data, cam);
-        }
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
             e.render(data, cam);
@@ -716,6 +712,8 @@ var PlayState = (function (_super) {
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
         _this.UI = [];
+        var button_tileset = new Tileset('asset/test_button.ts', 32);
+        var test_button = new Button(button_tileset);
         return _this;
     }
     PlayState.prototype.tick = function () {
