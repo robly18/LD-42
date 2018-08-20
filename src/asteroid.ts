@@ -23,6 +23,14 @@ class Asteroid {
       if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
         if(this.map.build(data, mpos_in_space, player_data)) player_data.building_materials--;
       }
+    } if (data.mouse[2]) {
+      let mpos_in_space = data.mpos.plus(cam);
+      let delta = mpos_in_space.minus(this.player.pos);
+      if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+        if (this.map.destroy_belt(
+              new Point(Math.floor(mpos_in_space.x/tile_size), Math.floor(mpos_in_space.y/tile_size))
+            )) player_data.building_materials++;
+      }
     }
   }
 

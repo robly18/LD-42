@@ -204,6 +204,20 @@ class Map {
       return true;
     }
   }
+  public destroy_belt(pos : Point) : boolean {
+    let i = pos.x;
+    let j = pos.y;
+    if (i in this.surface) {
+      if (j in this.surface[i]) {
+        let p = this.surface[i][j]
+        if (p.belt != null) {
+          p.belt = null;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   public get_prop(p : Point) : Prop | null {
     if (p.x in this.surface)

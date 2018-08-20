@@ -22,11 +22,20 @@ var Asteroid = (function () {
             e.tick(data, this);
         }
         this.player.tick(data, this);
-        if (data.mouse[0]) {
+        if (data.mouse[0] && player_data.building_materials > 0) {
             var mpos_in_space = data.mpos.plus(cam);
             var delta = mpos_in_space.minus(this.player.pos);
             if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
-                this.map.build(data, mpos_in_space, player_data);
+                if (this.map.build(data, mpos_in_space, player_data))
+                    player_data.building_materials--;
+            }
+        }
+        if (data.mouse[2]) {
+            var mpos_in_space = data.mpos.plus(cam);
+            var delta = mpos_in_space.minus(this.player.pos);
+            if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+                if (this.map.destroy_belt(new Point(Math.floor(mpos_in_space.x / tile_size), Math.floor(mpos_in_space.y / tile_size))))
+                    player_data.building_materials++;
             }
         }
     };
@@ -429,6 +438,20 @@ var Map = (function () {
             return true;
         }
     };
+    Map.prototype.destroy_belt = function (pos) {
+        var i = pos.x;
+        var j = pos.y;
+        if (i in this.surface) {
+            if (j in this.surface[i]) {
+                var p = this.surface[i][j];
+                if (p.belt != null) {
+                    p.belt = null;
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
     Map.prototype.get_prop = function (p) {
         if (p.x in this.surface)
             if (p.y in this.surface[p.x])
@@ -607,6 +630,7 @@ var PlayerData = (function () {
         }
         document.addEventListener("keydown", function (e) { if (e.keyCode == 82)
             _this.selected_direction = next(_this.selected_direction); });
+        this.building_materials = 10;
     }
     return PlayerData;
 }());
