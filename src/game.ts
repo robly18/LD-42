@@ -61,6 +61,12 @@ class Game {
   }
 
   public start() {
+    this.data.canvas.addEventListener("click", e => {
+      for(let E of this.state.UI)
+        if(this.data.mpos.x >= E.screen_pos.x && this.data.mpos.x <= E.screen_pos.x+E.width)
+          if(this.data.mpos.y >= E.screen_pos.y && this.data.mpos.y <= E.screen_pos.y+E.height)
+            E.on_click(this.data)
+    });
     this.loop();
   }
 

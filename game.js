@@ -46,9 +46,8 @@ var Asteroid = (function () {
         var mpos_in_space = data.mpos.plus(cam);
         var delta = mpos_in_space.minus(this.player.pos);
         this.map.render_background(data, cam);
-        if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+        if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE)
             this.map.render_ghost(data, mpos_in_space, player_data, cam);
-        }
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
             e.render(data, cam);
@@ -65,27 +64,29 @@ var Button = (function () {
         this.screen_pos = screen_pos;
         this.tileset_pos = tileset_pos;
         this.when_pressed = when_pressed;
+        this.width = tileset.tile_width;
+        this.height = tileset.tile_height;
     }
     Button.prototype.render = function (data) {
         var _a = [this.tileset_pos.x, this.tileset_pos.y], tx = _a[0], ty = _a[1];
         if (this.pressed) {
             tx += 1;
-            ty += 1;
         }
         this.tileset.draw(data, tx, ty, this.screen_pos.x, this.screen_pos.y);
     };
     Button.prototype.tick = function () {
         if (this.pressed) {
             var delta = Date.now() - this.time_pressed;
-            if (delta > 100)
+            if (delta > 1000)
                 this.toggle();
         }
     };
-    Button.prototype.on_click = function () {
+    Button.prototype.on_click = function (data) {
         if (!this.pressed) {
             this.toggle();
             this.time_pressed = Date.now();
             this.when_pressed();
+            console.log(data.mpos.x);
         }
     };
     Button.prototype.toggle = function () { this.pressed = (this.pressed + 1) % 2; };
@@ -182,6 +183,15 @@ var Game = (function () {
         this.state = new PlayState(this.data);
     }
     Game.prototype.start = function () {
+        var _this = this;
+        this.data.canvas.addEventListener("click", function (e) {
+            for (var _i = 0, _a = _this.state.UI; _i < _a.length; _i++) {
+                var E = _a[_i];
+                if (_this.data.mpos.x >= E.screen_pos.x && _this.data.mpos.x <= E.screen_pos.x + E.width)
+                    if (_this.data.mpos.y >= E.screen_pos.y && _this.data.mpos.y <= E.screen_pos.y + E.height)
+                        E.on_click(_this.data);
+            }
+        });
         this.loop();
     };
     Game.prototype.loop = function () {
@@ -646,6 +656,10 @@ var PlayState = (function (_super) {
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
         _this.UI = [];
+        var button_tileset = new Tileset('assets/test_button.png', 32);
+        var test = function () { };
+        var test_button = new Button(button_tileset, new Point(10, 10), new Point(0, 0), test.bind(_this.data));
+        _this.UI.push(test_button);
         return _this;
     }
     PlayState.prototype.tick = function () {

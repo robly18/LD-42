@@ -1,5 +1,6 @@
 abstract class State {
   data : GameData;
+  UI : UIElement[];
 	
   constructor(data : GameData) {
     this.data = data;
@@ -41,7 +42,6 @@ enum BuildingType {
 class PlayerData {
   selected_building : BuildingType = BuildingType.BELT;
   selected_direction : Facing = Facing.UP;
-=======
 
   building_materials : number;
   constructor(){
@@ -73,8 +73,12 @@ class PlayState extends State {
     this.cam = new Point(0,0);
     this.leftover_t = 0;
     this.UI = [];
-    let button_tileset = new Tileset('asset/test_button.ts', 32);
-    let test_button = new Button(button_tileset);
+
+    // TODO Clean
+    let button_tileset = new Tileset('assets/test_button.png', 32);
+    let test = function() {};
+    let test_button = new Button(button_tileset, new Point(10,10), new Point(0,0), test.bind(this.data));
+    this.UI.push(test_button);
   }
 
   public tick() : State {
