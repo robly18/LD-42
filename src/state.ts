@@ -41,6 +41,9 @@ enum BuildingType {
 class PlayerData {
   selected_building : BuildingType = BuildingType.BELT;
   selected_direction : Facing = Facing.UP;
+
+  building_materials : number;
+
   constructor(){
     function next(dir : Facing) {
       switch (dir) {
@@ -51,6 +54,7 @@ class PlayerData {
       }
     }
     document.addEventListener("keydown", e => {if (e.keyCode == 82) this.selected_direction = next(this.selected_direction);});
+    this.building_materials = 10;
   }
 }
 

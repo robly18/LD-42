@@ -17,11 +17,11 @@ class Asteroid {
     }
     this.player.tick(data, this);
 
-    if (data.mouse[0]) {
+    if (data.mouse[0] && player_data.building_materials > 0) {
       let mpos_in_space = data.mpos.plus(cam);
       let delta = mpos_in_space.minus(this.player.pos);
       if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
-        this.map.build(data, mpos_in_space, player_data);
+        if(this.map.build(data, mpos_in_space, player_data)) player_data.building_materials--;
       }
     }
   }
