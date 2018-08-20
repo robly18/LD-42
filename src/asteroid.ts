@@ -12,6 +12,7 @@ class Asteroid {
   }
 
   public tick(data : GameData, player_data : PlayerData, cam : Point) {
+    this.map.tick(this);
     for (let e of this.entities) {
       e.tick(data, this);
     }

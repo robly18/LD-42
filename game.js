@@ -17,6 +17,7 @@ var Asteroid = (function () {
         this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
     }
     Asteroid.prototype.tick = function (data, player_data, cam) {
+        this.map.tick(this);
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
             e.tick(data, this);
@@ -318,6 +319,16 @@ var Map = (function () {
             }
         }
         this.generate([500, 100, 100]);
+    };
+    Map.prototype.tick = function (asteroid) {
+        var surface = this.surface;
+        for (var i in surface) {
+            for (var j in surface[i]) {
+                var b = surface[i][j].building;
+                if (b != null)
+                    b.tick(surface[i][j].pos, asteroid);
+            }
+        }
     };
     Map.prototype.render_background = function (data, cam) {
         var img = new Image();
@@ -623,7 +634,11 @@ var Mine = (function (_super) {
         return _this;
     }
     Mine.prototype.tick = function (coords, asteroid) {
-        asteroid.entities.push(make_item(coords, Resource.ICE));
+        this.ticks_since_mined++;
+        if (this.ticks_since_mined >= this.ticks_between_mine) {
+            this.ticks_since_mined = 0;
+            asteroid.entities.push(make_item(coords, Resource.ICE));
+        }
     };
     Mine.prototype.tile_pos = function (data) {
         return [0, 2];

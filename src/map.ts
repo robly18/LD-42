@@ -61,6 +61,16 @@ class Map {
     this.generate([500,100,100]);
   }
 
+  public tick(asteroid : Asteroid) {
+    let surface = this.surface;
+    for (let i in surface) {
+      for (let j in surface[i]) {
+        let b = surface[i][j].building;
+        if (b != null) b.tick(surface[i][j].pos, asteroid)
+      }
+    }
+  }
+
   public render_background(data : GameData, cam : Point) {
     let img = new Image();
     img.src = 'assets/background.png';

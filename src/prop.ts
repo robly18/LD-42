@@ -43,7 +43,11 @@ class Mine extends Building {
   }
 
   public tick(coords : Point, asteroid : Asteroid) {
-    asteroid.entities.push(make_item(coords, Resource.ICE));
+    this.ticks_since_mined++;
+    if (this.ticks_since_mined >= this.ticks_between_mine) {
+      this.ticks_since_mined = 0;
+      asteroid.entities.push(make_item(coords, Resource.ICE));
+    }
   }
 
   protected tile_pos(data : GameData) : [number, number] {
