@@ -14,22 +14,10 @@ class Entity {
     if (!this.floating) {
       let pos = this.pos;
 
-<<<<<<< HEAD
-      let belt_velocity : Point = new Point(0,0);
-
-      let prop_here = asteroid.map.get_prop(new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size)));
-      if (prop_here != null && prop_here instanceof Belt) {
-||||||| merged common ancestors
-      let belt_velocity : Point = new Point(0,0);
-
-      let prop_here = asteroid.map.get_prop(new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size)));
-      if (prop_here != null) {
-=======
       let belt_velocity = new Point(0,0);
       let coordinate = new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size));
       let prop_here = asteroid.map.get_prop(coordinate);
       if (prop_here != null) {
->>>>>>> 82cf56470e31afce13169962d643e120e179c984
         let d = prop_here.belt_dir();
         if (d != null) {
           let et = dir_to_vector(d); //yay orthonormal bases
