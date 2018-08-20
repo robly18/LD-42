@@ -1,4 +1,3 @@
-
 abstract class GraphicsComponent {
   constructor(){}
   public abstract render(data: GameData, entity: Entity): void;
@@ -16,10 +15,12 @@ class CreatureGraphicsComponent {
   facing : Facing = Facing.DOWN;
   timeInThisState : number = 0;
   timePerFrame : number;
+
   constructor(src : string, timePerFrame : number = 100) {
     this.tileset = new Tileset(src, 8, 16);
     this.timePerFrame = timePerFrame;
   }
+
   public render(data: GameData, entity: Entity) {
     if (entity.velocity.x == 0 && entity.velocity.y == 0) {
       this.timeInThisState = 0;

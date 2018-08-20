@@ -17,7 +17,7 @@ class Entity {
       let belt_velocity : Point = new Point(0,0);
 
       let prop_here = asteroid.map.get_prop(new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size)));
-      if (prop_here != null) {
+      if (prop_here != null && prop_here instanceof Belt) {
         let d = prop_here.belt_dir();
         if (d != null) {
           switch (d) {
