@@ -12,17 +12,23 @@ class Asteroid {
   }
 
   public tick(data : GameData, player_data : PlayerData, cam : Point) {
-    this.map.tick(this);
-    for (let e of this.entities) {
-      e.tick(data, this);
+    this.map.tick(this, player_data);
+    for (let i = 0; i < this.entities.length;) {
+      let e = this.entities[i];
+      let stay = e.tick(data, this);
+      if (stay) i++;
+      else {
+        this.entities[i] = this.entities[this.entities.length-1];
+        this.entities.length--;
+      }
     }
     this.player.tick(data, this);
 
-    if (data.mouse[0] && player_data.building_materials > 0) {
+    if (data.mouse[0] && player_data.construction_parts > 0) {
       let mpos_in_space = data.mpos.plus(cam);
       let delta = mpos_in_space.minus(this.player.pos);
       if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
-        if(this.map.build(data, mpos_in_space, player_data)) player_data.building_materials--;
+        if(this.map.build(data, mpos_in_space, player_data)) player_data.construction_parts--;
       }
     } if (data.mouse[2]) {
       let mpos_in_space = data.mpos.plus(cam);
@@ -30,7 +36,7 @@ class Asteroid {
       if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
         if (this.map.destroy_belt(
               new Point(Math.floor(mpos_in_space.x/tile_size), Math.floor(mpos_in_space.y/tile_size))
-            )) player_data.building_materials++;
+            )) player_data.construction_parts++;
       }
     }
   }

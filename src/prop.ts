@@ -22,7 +22,7 @@ class Prop {
 abstract class Building {
   constructor () {};
 
-  public abstract tick(coords : Point, asteroid : Asteroid) : void;
+  public abstract tick(coords : Point, asteroid : Asteroid, player_data : PlayerData) : void;
 
   public render(data : GameData, ts : Tileset, x : number, y : number, ghost : boolean = false) {
     let [tx, ty] = this.tile_pos(data);
@@ -32,6 +32,8 @@ abstract class Building {
   }
 
   protected abstract tile_pos(data : GameData) : [number, number];
+
+  public give(t : Resource) {return false;}
 }
 
 class Mine extends Building {
@@ -42,7 +44,7 @@ class Mine extends Building {
     super();
   }
 
-  public tick(coords : Point, asteroid : Asteroid) {
+  public tick(coords : Point, asteroid : Asteroid, player_data : PlayerData) {
     this.ticks_since_mined++;
     if (this.ticks_since_mined >= this.ticks_between_mine) {
       this.ticks_since_mined = 0;
@@ -68,6 +70,67 @@ class Mine extends Building {
     return [0,2];
   }
 }
+
+enum FactoryType {
+  FUEL,
+  CONSTRUCTION_PARTS
+}
+
+class Factory extends Building {
+  recipe : [number, number, number];
+  have : [number, number, number] = [0,0,0];
+  ticks_to_build : number;
+  ticks_til_build : number = -1;
+  type : FactoryType;
+  constructor(recipe : [number,number,number], ticks_to_build : number, type : FactoryType) {
+    super();
+    this.recipe = recipe;
+    this.ticks_to_build = ticks_to_build;
+    this.type = type;
+  }
+
+  public tick(coords : Point, asteroid : Asteroid, player_data : PlayerData) {
+    if (this.ticks_til_build == 0) {
+      switch(this.type) {
+      case FactoryType.FUEL:  player_data.fuel++; break;
+      case FactoryType.CONSTRUCTION_PARTS: player_data.construction_parts++; break;
+      }
+    }
+    if (this.ticks_til_build >= 0) {
+      this.ticks_til_build--;
+    }
+    if (this.ticks_til_build == -1) {
+      let can = true;
+      for (let i in this.have) if (this.have[i] < this.recipe[i]) can = false;
+      if (can) {
+        this.ticks_til_build = this.ticks_to_build;
+        for (let i in this.have) this.have[i] -= this.recipe[i];
+      }
+    }
+  }
+
+  public give(t : Resource) {
+    if (this.have[t] < this.recipe[t]) {
+      this.have[t]++; return true;
+    } else return false;
+  }
+
+  protected tile_pos(data : GameData) : [number, number] {
+    switch (this.type) {
+    case FactoryType.FUEL:  return [0,0];
+    case FactoryType.CONSTRUCTION_PARTS: return [0,2];
+    }
+  }
+}
+
+function make_construction_parts_factory() {
+  return new Factory(CONSTRUCTION_PARTS_RECIPE, CONSTRUCTION_PARTS_TIME, FactoryType.CONSTRUCTION_PARTS);
+}
+
+function make_fuel_factory() {
+  return new Factory(FUEL_RECIPE, FUEL_TIME, FactoryType.FUEL);
+}
+
 
 class Belt {
   facing : Facing;

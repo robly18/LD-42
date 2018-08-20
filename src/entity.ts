@@ -9,13 +9,13 @@ class Entity {
     this.floating = floating;
   }
 
-  public tick(data : GameData, asteroid : Asteroid) {
+  public tick(data : GameData, asteroid : Asteroid) : boolean { //returns true if it stays alive at the end
     if (this.movement != null) this.movement.tick(data, this);
+    let pos = this.pos;
+    let coordinate = new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size));
     if (!this.floating) {
-      let pos = this.pos;
 
       let belt_velocity = new Point(0,0);
-      let coordinate = new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size));
       let prop_here = asteroid.map.get_prop(coordinate);
       if (prop_here != null) {
         let d = prop_here.belt_dir();
@@ -26,7 +26,7 @@ class Entity {
           let delta = en.times(pos.minus(center).dot(en)); //vector from the belt's center axis to the object
           let deltanorm = Math.sqrt(delta.dot(delta));
 
-          if (deltanorm < tile_size / 4)
+          if (deltanorm < tile_size / 10)
             belt_velocity = belt_velocity.plus(et.times(BELT_SPEED_PXPERSEC/1000));
           else
             belt_velocity = belt_velocity.plus(delta.times(-BELT_SPEED_PXPERSEC/1000/deltanorm));
@@ -48,6 +48,8 @@ class Entity {
     } else {
       this.pos = this.pos.plus(this.velocity);
     }
+    if (this.item != null) return !this.item.given(coordinate, asteroid);
+    else return true;
   }
 
   public render(data: GameData, cam: Point) {
@@ -63,6 +65,17 @@ class ItemComponent {
   t : Resource;
   constructor(t : Resource) {
     this.t = t;
+  }
+  public given(coordinate : Point, asteroid : Asteroid) {
+    let p = asteroid.map.get_prop(coordinate);
+    if (p == null) return false;
+    else {
+      let b = p.building;
+      if (b == null) return false;
+      else {
+        return b.give(this.t);
+      }
+    }
   }
 }
 

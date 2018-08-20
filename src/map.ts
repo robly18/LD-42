@@ -63,12 +63,12 @@ class Map {
     this.generate([500,100,100]);
   }
 
-  public tick(asteroid : Asteroid) {
+  public tick(asteroid : Asteroid, player_data : PlayerData) {
     let surface = this.surface;
     for (let i in surface) {
       for (let j in surface[i]) {
         let b = surface[i][j].building;
-        if (b != null) b.tick(surface[i][j].pos, asteroid)
+        if (b != null) b.tick(surface[i][j].pos, asteroid, player_data)
       }
     }
   }
@@ -123,6 +123,16 @@ class Map {
         g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
         break;
       }
+      case BuildingType.CONSTRUCTION_PARTS_FACTORY: {
+        let g = make_construction_parts_factory();
+        g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
+        break;
+      }
+      case BuildingType.FUEL_FACTORY: {
+        let g = make_fuel_factory();
+        g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
+        break;
+      }
       default: break;
     }
   }
@@ -136,6 +146,10 @@ class Map {
         return this.add_belt(new Point(coordinates.x, coordinates.y), player_data.selected_direction);
       case BuildingType.MINE:
         return this.add_building(new Point(coordinates.x, coordinates.y), new Mine());
+      case BuildingType.CONSTRUCTION_PARTS_FACTORY:
+        return this.add_building(new Point(coordinates.x, coordinates.y), make_construction_parts_factory());
+      case BuildingType.FUEL_FACTORY:
+        return this.add_building(new Point(coordinates.x, coordinates.y), make_fuel_factory());
       default: return false;
     }
   }
