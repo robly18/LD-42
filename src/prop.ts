@@ -22,21 +22,32 @@ class Prop {
 abstract class Building {
   constructor () {};
 
+  public abstract tick(coords : Point, asteroid : Asteroid) : void;
+
   public render(data : GameData, ts : Tileset, x : number, y : number, ghost : boolean = false) {
     let [tx, ty] = this.tile_pos(data);
+    if (ghost) data.ctx.globalAlpha = 0.5;
     ts.draw(data, tx, ty, x, y);
+    data.ctx.globalAlpha = 1;
   }
 
   protected abstract tile_pos(data : GameData) : [number, number];
 }
 
 class Mine extends Building {
+  ticks_since_mined : number = 0;
+  ticks_between_mine : number = 10;
+
   constructor() {
     super();
   }
 
+  public tick(coords : Point, asteroid : Asteroid) {
+    asteroid.entities.push(make_item(coords, Resource.ICE));
+  }
+
   protected tile_pos(data : GameData) : [number, number] {
-    return [0,1];
+    return [0,2];
   }
 }
 

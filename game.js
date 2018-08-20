@@ -91,6 +91,7 @@ var Button = (function () {
 var Entity = (function () {
     function Entity(pos, floating) {
         if (floating === void 0) { floating = false; }
+        this.item = null;
         this.movement = null;
         this.graphics = null;
         this.pos = pos;
@@ -135,10 +136,23 @@ var Entity = (function () {
     };
     Entity.prototype.render = function (data, cam) {
         if (this.graphics != null)
-            this.graphics.render(data, this);
+            this.graphics.render(data, this, cam);
     };
     return Entity;
 }());
+var ItemComponent = (function () {
+    function ItemComponent(t) {
+        this.t = t;
+    }
+    return ItemComponent;
+}());
+var itemtileset;
+function make_item(c, type) {
+    var e = new Entity(new Point((c.x + Math.random()) * tile_size, (c.y + Math.random()) * tile_size));
+    e.item = new ItemComponent(type);
+    e.graphics = new StaticGraphicsComponent(itemtileset, type, 0);
+    return e;
+}
 var GameData = (function () {
     function GameData(canvas) {
         var _this = this;
@@ -209,7 +223,7 @@ var CreatureGraphicsComponent = (function () {
         this.tileset = new Tileset(src, 8, 16);
         this.timePerFrame = timePerFrame;
     }
-    CreatureGraphicsComponent.prototype.render = function (data, entity) {
+    CreatureGraphicsComponent.prototype.render = function (data, entity, cam) {
         if (entity.velocity.x == 0 && entity.velocity.y == 0) {
             this.timeInThisState = 0;
         }
@@ -242,10 +256,22 @@ var CreatureGraphicsComponent = (function () {
     };
     return CreatureGraphicsComponent;
 }());
+var StaticGraphicsComponent = (function () {
+    function StaticGraphicsComponent(ts, tx, ty) {
+        this.ts = ts;
+        this.tx = tx;
+        this.ty = ty;
+    }
+    StaticGraphicsComponent.prototype.render = function (data, entity, cam) {
+        this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x, entity.pos.y - cam.y);
+    };
+    return StaticGraphicsComponent;
+}());
 var DT = 1000 / 60;
 var BELT_SPEED_PXPERSEC = 32;
 var BUILDING_RANGE = 100;
 window.onload = function () {
+    itemtileset = new Tileset("assets/items.png", 8, 8);
     var game = new Game(document.getElementById('canvas'));
     game.start();
 };
@@ -334,10 +360,16 @@ var Map = (function () {
         if (coordinates.y < 0 || coordinates.y >= this.height)
             return;
         switch (player_data.selected_building) {
-            case BuildingType.BELT:
+            case BuildingType.BELT: {
                 var g = new Belt(player_data.selected_direction);
                 g.render(data, this.tileset, coordinates.x * tile_size - cam.x, coordinates.y * tile_size - cam.y, true);
                 break;
+            }
+            case BuildingType.MINE: {
+                var g = new Mine();
+                g.render(data, this.tileset, coordinates.x * tile_size - cam.x, coordinates.y * tile_size - cam.y, true);
+                break;
+            }
             default: break;
         }
     };
@@ -350,6 +382,8 @@ var Map = (function () {
         switch (player_data.selected_building) {
             case BuildingType.BELT:
                 return this.add_belt(new Point(coordinates.x, coordinates.y), player_data.selected_direction);
+            case BuildingType.MINE:
+                return this.add_building(new Point(coordinates.x, coordinates.y), new Mine());
             default: return false;
         }
     };
@@ -452,6 +486,32 @@ var Map = (function () {
         }
         return false;
     };
+    Map.prototype.add_building = function (pos, b) {
+        var i = pos.x;
+        var j = pos.y;
+        if (i in this.surface) {
+            if (j in this.surface[i]) {
+                var p = this.surface[i][j];
+                if (p.building == null) {
+                    p.building = b;
+                    return true;
+                }
+                else
+                    return false;
+            }
+            else {
+                this.surface[i][j] = new Prop(pos);
+                this.surface[i][j].building = b;
+                return true;
+            }
+        }
+        else {
+            this.surface[i] = {};
+            this.surface[i][j] = new Prop(pos);
+            this.surface[i][j].building = b;
+            return true;
+        }
+    };
     Map.prototype.get_prop = function (p) {
         if (p.x in this.surface)
             if (p.y in this.surface[p.x])
@@ -548,17 +608,26 @@ var Building = (function () {
     Building.prototype.render = function (data, ts, x, y, ghost) {
         if (ghost === void 0) { ghost = false; }
         var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
+        if (ghost)
+            data.ctx.globalAlpha = 0.5;
         ts.draw(data, tx, ty, x, y);
+        data.ctx.globalAlpha = 1;
     };
     return Building;
 }());
 var Mine = (function (_super) {
     __extends(Mine, _super);
     function Mine() {
-        return _super.call(this) || this;
+        var _this = _super.call(this) || this;
+        _this.ticks_since_mined = 0;
+        _this.ticks_between_mine = 10;
+        return _this;
     }
+    Mine.prototype.tick = function (coords, asteroid) {
+        asteroid.entities.push(make_item(coords, Resource.ICE));
+    };
     Mine.prototype.tile_pos = function (data) {
-        return [0, 1];
+        return [0, 2];
     };
     return Mine;
 }(Building));
@@ -614,11 +683,12 @@ var BuildingType;
 (function (BuildingType) {
     BuildingType[BuildingType["NONE"] = 0] = "NONE";
     BuildingType[BuildingType["BELT"] = 1] = "BELT";
+    BuildingType[BuildingType["MINE"] = 2] = "MINE";
 })(BuildingType || (BuildingType = {}));
 var PlayerData = (function () {
     function PlayerData() {
         var _this = this;
-        this.selected_building = BuildingType.BELT;
+        this.selected_building = BuildingType.MINE;
         this.selected_direction = Facing.UP;
         function next(dir) {
             switch (dir) {

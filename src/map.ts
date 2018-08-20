@@ -102,10 +102,16 @@ class Map {
     if (coordinates.x < 0 || coordinates.x >= this.width) return;
     if (coordinates.y < 0 || coordinates.y >= this.height) return;
     switch (player_data.selected_building) {
-      case BuildingType.BELT:
+      case BuildingType.BELT: {
         let g = new Belt(player_data.selected_direction);
         g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
         break;
+      }
+      case BuildingType.MINE: {
+        let g = new Mine();
+        g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
+        break;
+      }
       default: break;
     }
   }
@@ -117,6 +123,8 @@ class Map {
     switch (player_data.selected_building) {
       case BuildingType.BELT:
         return this.add_belt(new Point(coordinates.x, coordinates.y), player_data.selected_direction);
+      case BuildingType.MINE:
+        return this.add_building(new Point(coordinates.x, coordinates.y), new Mine());
       default: return false;
     }
   }
@@ -217,6 +225,29 @@ class Map {
       }
     }
     return false;
+  }
+
+  public add_building(pos : Point, b : Building) : boolean {
+    let i = pos.x;
+    let j = pos.y;
+    if (i in this.surface) {
+      if (j in this.surface[i]) {
+        let p = this.surface[i][j]
+        if (p.building == null) {
+          p.building = b;
+          return true;
+        } else return false;
+      } else {
+        this.surface[i][j] = new Prop(pos);
+        this.surface[i][j].building = b;
+        return true;
+      }
+    } else {
+      this.surface[i] = {};
+      this.surface[i][j] = new Prop(pos);
+      this.surface[i][j].building = b;
+      return true;
+    }
   }
 
   public get_prop(p : Point) : Prop | null {

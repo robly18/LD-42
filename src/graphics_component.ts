@@ -1,6 +1,6 @@
 abstract class GraphicsComponent {
   constructor(){}
-  public abstract render(data: GameData, entity: Entity): void;
+  public abstract render(data: GameData, entity: Entity, cam : Point): void;
 }
 
 enum Facing {
@@ -21,7 +21,7 @@ class CreatureGraphicsComponent {
     this.timePerFrame = timePerFrame;
   }
 
-  public render(data: GameData, entity: Entity) {
+  public render(data: GameData, entity: Entity, cam : Point) {
     if (entity.velocity.x == 0 && entity.velocity.y == 0) {
       this.timeInThisState = 0;
     } else {
@@ -46,5 +46,17 @@ class CreatureGraphicsComponent {
     if (v.x < 0) return Facing.LEFT;
     if (v.x > 0) return Facing.RIGHT;
     return Facing.DOWN;
+  }
+}
+
+class StaticGraphicsComponent {
+  ts : Tileset;
+  tx : number;
+  ty : number;
+  constructor(ts : Tileset, tx : number, ty : number){
+    this.ts = ts; this.tx = tx; this.ty = ty;
+  }
+  public render(data: GameData, entity: Entity, cam : Point) {
+    this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x, entity.pos.y - cam.y);
   }
 }

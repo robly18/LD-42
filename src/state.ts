@@ -35,11 +35,12 @@ class MenuState extends State {
 
 enum BuildingType {
   NONE,
-  BELT
+  BELT,
+  MINE
 }
 
 class PlayerData {
-  selected_building : BuildingType = BuildingType.BELT;
+  selected_building : BuildingType = BuildingType.MINE;
   selected_direction : Facing = Facing.UP;
 
   building_materials : number;
