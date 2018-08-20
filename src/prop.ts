@@ -116,10 +116,17 @@ class Factory extends Building {
   }
 
   protected tile_pos(data : GameData) : [number, number] {
-    switch (this.type) {
-    case FactoryType.FUEL:  return [0,0];
-    case FactoryType.CONSTRUCTION_PARTS: return [0,2];
-    }
+    if (this.ticks_til_build == -1)
+      switch (this.type) {
+      case FactoryType.FUEL:  return [0,4];
+      case FactoryType.CONSTRUCTION_PARTS: return [1,4];
+      }
+    else
+      switch (this.type) {
+      case FactoryType.FUEL:  return [0,5];
+      case FactoryType.CONSTRUCTION_PARTS: return [1,5];
+      }
+    return [0,0];
   }
 }
 
