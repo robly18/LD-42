@@ -48,29 +48,23 @@ var Entity = (function () {
         if (!this.floating) {
             var pos = this.pos;
             var belt_velocity = new Point(0, 0);
-            var prop_here = asteroid.map.get_prop(new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size)));
+            var coordinate = new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size));
+            var prop_here = asteroid.map.get_prop(coordinate);
             if (prop_here != null) {
                 var d = prop_here.belt_dir();
                 if (d != null) {
-                    switch (d) {
-                        case Facing.UP:
-                            belt_velocity.y -= BELT_SPEED_PXPERSEC / 1000;
-                            break;
-                        case Facing.DOWN:
-                            belt_velocity.y += BELT_SPEED_PXPERSEC / 1000;
-                            break;
-                        case Facing.RIGHT:
-                            belt_velocity.x += BELT_SPEED_PXPERSEC / 1000;
-                            break;
-                        case Facing.LEFT:
-                            belt_velocity.x -= BELT_SPEED_PXPERSEC / 1000;
-                            break;
-                    }
+                    var et = dir_to_vector(d);
+                    var en = new Point(et.y, -et.x);
+                    var center = new Point((coordinate.x + 1 / 2) * tile_size, (coordinate.y + 1 / 2) * tile_size);
+                    var delta = en.times(pos.minus(center).dot(en));
+                    var deltanorm = Math.sqrt(delta.dot(delta));
+                    if (deltanorm < tile_size / 4)
+                        belt_velocity = belt_velocity.plus(et.times(BELT_SPEED_PXPERSEC / 1000));
+                    else
+                        belt_velocity = belt_velocity.plus(delta.times(-BELT_SPEED_PXPERSEC / 1000 / deltanorm));
                 }
             }
-            this.velocity.x += belt_velocity.x;
-            this.velocity.y += belt_velocity.y;
-            console.log(this.velocity.x, this.velocity.y, belt_velocity.x, belt_velocity.y);
+            this.velocity = this.velocity.plus(belt_velocity);
             var newposx = new Point(pos.x + this.velocity.x * DT, pos.y);
             if (!asteroid.map.empty(newposx))
                 pos = newposx;
@@ -78,12 +72,10 @@ var Entity = (function () {
             if (!asteroid.map.empty(newposy))
                 pos = newposy;
             this.pos = pos;
-            this.velocity.x -= belt_velocity.x;
-            this.velocity.y -= belt_velocity.y;
+            this.velocity = this.velocity.minus(belt_velocity);
         }
         else {
-            this.pos.x += this.velocity.x * DT;
-            this.pos.y += this.velocity.y * DT;
+            this.pos = this.pos.plus(this.velocity);
         }
     };
     Entity.prototype.render = function (data, cam) {
@@ -361,10 +353,30 @@ var Point = (function () {
     Point.prototype.is_valid = function (width, height) {
         return this.x >= 0 && this.y >= 0 && this.x < width && this.y < height;
     };
+    Point.prototype.plus = function (other) {
+        return new Point(this.x + other.x, this.y + other.y);
+    };
+    Point.prototype.minus = function (other) {
+        return new Point(this.x - other.x, this.y - other.y);
+    };
+    Point.prototype.times = function (other) {
+        return new Point(this.x * other, this.y * other);
+    };
+    Point.prototype.dot = function (other) {
+        return this.x * other.x + this.y * other.y;
+    };
     return Point;
 }());
 function rand_int(b) {
     return Math.floor(Math.random() * b);
+}
+function dir_to_vector(d) {
+    switch (d) {
+        case Facing.UP: return new Point(0, -1);
+        case Facing.DOWN: return new Point(0, 1);
+        case Facing.RIGHT: return new Point(1, 0);
+        case Facing.LEFT: return new Point(-1, 0);
+    }
 }
 var MovementComponent = (function () {
     function MovementComponent() {
