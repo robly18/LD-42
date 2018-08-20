@@ -57,6 +57,6 @@ class StaticGraphicsComponent {
     this.ts = ts; this.tx = tx; this.ty = ty;
   }
   public render(data: GameData, entity: Entity, cam : Point) {
-    this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x, entity.pos.y - cam.y);
+    this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x - this.ts.tile_width/2, entity.pos.y - cam.y - this.ts.tile_height);
   }
 }

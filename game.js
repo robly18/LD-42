@@ -263,7 +263,7 @@ var StaticGraphicsComponent = (function () {
         this.ty = ty;
     }
     StaticGraphicsComponent.prototype.render = function (data, entity, cam) {
-        this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x, entity.pos.y - cam.y);
+        this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x - this.ts.tile_width / 2, entity.pos.y - cam.y - this.ts.tile_height);
     };
     return StaticGraphicsComponent;
 }());
