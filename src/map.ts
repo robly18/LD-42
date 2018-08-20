@@ -58,7 +58,7 @@ class Map {
       }
     }
 
-    this.generate([100,100,100]);
+    this.generate([500,100,100]);
   }
 
   public render_background(data : GameData, cam : Point) {
@@ -97,7 +97,21 @@ class Map {
     }
   }
 
-  public generate(req: number[]) {
+  public render_ghost(data : GameData, pos : Point, player_data : PlayerData, cam : Point) {
+    let coordinates = new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size));
+    if (coordinates.x < 0 || coordinates.x >= this.width) return;
+    if (coordinates.y < 0 || coordinates.y >= this.height) return;
+    switch (player_data.selected_building) {
+      case BuildingType.BELT:
+        console.log("blah");
+        let g = new Belt(player_data.selected_direction);
+        g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
+        break;
+      default: break;
+    }
+  }
+
+  public generate(req: [number, number, number]) {
     let queue: [Point, number][] = [];
     let seed: Point = new Point(rand_int(this.width), rand_int(this.height));
 
@@ -105,8 +119,6 @@ class Map {
       for(let i = 0; i < req[k]; i++) {
         while(this.ground[seed.x][seed.y])
           seed = new Point(rand_int(this.width), rand_int(this.height));
-        console.log(seed)
-        console.log(this.ground[0]);
         this.ground[seed.x][seed.y] = new Tile(k, 100);
 
         let to_fill: number[][] = [];
@@ -160,18 +172,26 @@ class Map {
     return (this.ground[i][j] == null);
   }
 
-  public add_prop(p : Prop) {
-    let i = p.pos.x;
-    let j = p.pos.y;
+  public add_belt(pos : Point, dir : Facing) : boolean {
+    let i = pos.x;
+    let j = pos.y;
     if (i in this.surface) {
       if (j in this.surface[i]) {
-        alert("Trying to add prop to occupied space.");
+        let p = this.surface[i][j]
+        if (p.belt == null) {
+          p.belt = new Belt(dir);
+          return true;
+        } else return false;
       } else {
-        this.surface[i][j] = p;
+        this.surface[i][j] = new Prop(pos);
+        this.surface[j][j].belt = new Belt(dir);
+        return true;
       }
     } else {
       this.surface[i] = {};
-      this.surface[i][j] = p;
+      this.surface[i][j] = new Prop(pos);
+      this.surface[j][j].belt = new Belt(dir);
+      return true;
     }
   }
 

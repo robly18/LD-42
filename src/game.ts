@@ -9,6 +9,7 @@ class GameData {
   new_t : number;
 
   keys : { [id:number]: boolean };
+  mpos : Point;
   
   constructor(canvas : HTMLCanvasElement) {
     this.canvas = canvas;
@@ -23,6 +24,12 @@ class GameData {
     this.keys = {};
     document.addEventListener("keydown", e => {this.keys[e.keyCode] = true;});
     document.addEventListener("keyup", e => {delete this.keys[e.keyCode];});
+    this.mpos = new Point(0,0);
+    this.canvas.addEventListener("mousemove", e => {
+      let mpos=this.mpos;
+      mpos.x = e.clientX - this.canvas.offsetLeft;
+      mpos.y = e.clientY - this.canvas.offsetTop;
+    });
   }
   
   public tick() {

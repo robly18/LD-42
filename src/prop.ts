@@ -22,7 +22,7 @@ class Prop {
 abstract class Building {
   constructor () {};
 
-  public render(data : GameData, ts : Tileset, x : number, y : number) {
+  public render(data : GameData, ts : Tileset, x : number, y : number, ghost : boolean = false) {
     let [tx, ty] = this.tile_pos(data);
     ts.draw(data, tx, ty, x, y);
   }
@@ -33,11 +33,6 @@ abstract class Building {
 class Mine extends Building {
   constructor() {
     super();
-  }
-
-  public render(data : GameData, ts : Tileset, x : number, y : number) {
-    let [tx, ty] = this.tile_pos(data);
-    ts.draw(data, tx, ty, x, y);
   }
 
   protected tile_pos(data : GameData) : [number, number] {
@@ -51,9 +46,12 @@ class Belt {
     this.facing = facing;
   }
 
-  public render(data : GameData, ts : Tileset, x : number, y : number) {
+  public render(data : GameData, ts : Tileset, x : number, y : number, ghost : boolean = false) {
+    console.log(x,y);
     let [tx, ty] = this.tile_pos(data);
+    if (ghost) data.ctx.globalAlpha = 0.5;
     ts.draw(data, tx, ty, x, y);
+    data.ctx.globalAlpha = 1;
   }
 
   protected tile_pos(data : GameData) : [number, number] {

@@ -33,7 +33,29 @@ class MenuState extends State {
   }
 }
 
+enum BuildingType {
+  NONE,
+  BELT
+}
+
+class PlayerData {
+  selected_building : BuildingType = BuildingType.BELT;
+  selected_direction : Facing = Facing.UP;
+  constructor(){
+    function next(dir : Facing) {
+      switch (dir) {
+      case Facing.UP: return Facing.RIGHT;
+      case Facing.RIGHT: return Facing.DOWN;
+      case Facing.DOWN: return Facing.LEFT;
+      case Facing.LEFT: return Facing.UP;
+      }
+    }
+    document.addEventListener("keydown", e => {if (e.keyCode == 82) this.selected_direction = next(this.selected_direction);});
+  }
+}
+
 class PlayState extends State {
+  player_data : PlayerData;
   asteroid : Asteroid;
   cam : Point;
 
@@ -41,6 +63,7 @@ class PlayState extends State {
 
   constructor(data : GameData) {
     super(data);
+    this.player_data = new PlayerData();
     this.asteroid = new Asteroid(new Map(100,100,25));
     this.cam = new Point(0,0);
     this.leftover_t = 0;
@@ -63,6 +86,7 @@ class PlayState extends State {
   public render() {
     this.data.ctx.fillStyle = "black";
     this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
-    this.asteroid.render(this.data, this.cam);
+    this.asteroid.render(this.data, this.player_data, this.cam);
+
   }
 }

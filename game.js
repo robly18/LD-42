@@ -15,20 +15,26 @@ var Asteroid = (function () {
         this.player = new Entity(new Point(100, 100), false);
         this.player.movement = new PlayerMovementComponent();
         this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
-        this.entities.push(this.player);
     }
     Asteroid.prototype.tick = function (data) {
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
             e.tick(data, this);
         }
+        this.player.tick(data, this);
     };
-    Asteroid.prototype.render = function (data, cam) {
+    Asteroid.prototype.render = function (data, player_data, cam) {
+        var mpos_in_space = data.mpos.plus(cam);
+        var delta = mpos_in_space.minus(this.player.pos);
         this.map.render_background(data, cam);
+        if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+            this.map.render_ghost(data, mpos_in_space, player_data, cam);
+        }
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
             e.render(data, cam);
         }
+        this.player.render(data, cam);
         this.map.render_foreground(data, cam);
     };
     return Asteroid;
@@ -96,6 +102,12 @@ var GameData = (function () {
         this.keys = {};
         document.addEventListener("keydown", function (e) { _this.keys[e.keyCode] = true; });
         document.addEventListener("keyup", function (e) { delete _this.keys[e.keyCode]; });
+        this.mpos = new Point(0, 0);
+        this.canvas.addEventListener("mousemove", function (e) {
+            var mpos = _this.mpos;
+            mpos.x = e.clientX - _this.canvas.offsetLeft;
+            mpos.y = e.clientY - _this.canvas.offsetTop;
+        });
     }
     GameData.prototype.tick = function () {
         this.prev_t = this.new_t;
@@ -162,7 +174,6 @@ var CreatureGraphicsComponent = (function () {
         }
         var tx = Math.floor(this.timeInThisState / this.timePerFrame) % 4;
         var tileset = this.tileset;
-        console.log(tx, this.facing);
         tileset.draw(data, tx, this.facing, data.width / 2 - tileset.tile_width / 2, data.height / 2 - tileset.tile_height);
     };
     CreatureGraphicsComponent.prototype.facingDirection = function (entity) {
@@ -181,6 +192,7 @@ var CreatureGraphicsComponent = (function () {
 }());
 var DT = 1000 / 60;
 var BELT_SPEED_PXPERSEC = 32;
+var BUILDING_RANGE = 100;
 window.onload = function () {
     var game = new Game(document.getElementById('canvas'));
     game.start();
@@ -228,7 +240,7 @@ var Map = (function () {
                 this.ground[i][j] = null;
             }
         }
-        this.generate([100, 100, 100]);
+        this.generate([500, 100, 100]);
     };
     Map.prototype.render_background = function (data, cam) {
         var img = new Image();
@@ -263,6 +275,21 @@ var Map = (function () {
             }
         }
     };
+    Map.prototype.render_ghost = function (data, pos, player_data, cam) {
+        var coordinates = new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size));
+        if (coordinates.x < 0 || coordinates.x >= this.width)
+            return;
+        if (coordinates.y < 0 || coordinates.y >= this.height)
+            return;
+        switch (player_data.selected_building) {
+            case BuildingType.BELT:
+                console.log("blah");
+                var g = new Belt(player_data.selected_direction);
+                g.render(data, this.tileset, coordinates.x * tile_size - cam.x, coordinates.y * tile_size - cam.y, true);
+                break;
+            default: break;
+        }
+    };
     Map.prototype.generate = function (req) {
         var queue = [];
         var seed = new Point(rand_int(this.width), rand_int(this.height));
@@ -270,8 +297,6 @@ var Map = (function () {
             for (var i = 0; i < req[k]; i++) {
                 while (this.ground[seed.x][seed.y])
                     seed = new Point(rand_int(this.width), rand_int(this.height));
-                console.log(seed);
-                console.log(this.ground[0]);
                 this.ground[seed.x][seed.y] = new Tile(k, 100);
                 var to_fill = [];
                 for (var j = 0; j < 8; j++)
@@ -324,20 +349,30 @@ var Map = (function () {
             return true;
         return (this.ground[i][j] == null);
     };
-    Map.prototype.add_prop = function (p) {
-        var i = p.pos.x;
-        var j = p.pos.y;
+    Map.prototype.add_belt = function (pos, dir) {
+        var i = pos.x;
+        var j = pos.y;
         if (i in this.surface) {
             if (j in this.surface[i]) {
-                alert("Trying to add prop to occupied space.");
+                var p = this.surface[i][j];
+                if (p.belt == null) {
+                    p.belt = new Belt(dir);
+                    return true;
+                }
+                else
+                    return false;
             }
             else {
-                this.surface[i][j] = p;
+                this.surface[i][j] = new Prop(pos);
+                this.surface[j][j].belt = new Belt(dir);
+                return true;
             }
         }
         else {
             this.surface[i] = {};
-            this.surface[i][j] = p;
+            this.surface[i][j] = new Prop(pos);
+            this.surface[j][j].belt = new Belt(dir);
+            return true;
         }
     };
     Map.prototype.get_prop = function (p) {
@@ -433,7 +468,8 @@ var Building = (function () {
     function Building() {
     }
     ;
-    Building.prototype.render = function (data, ts, x, y) {
+    Building.prototype.render = function (data, ts, x, y, ghost) {
+        if (ghost === void 0) { ghost = false; }
         var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
         ts.draw(data, tx, ty, x, y);
     };
@@ -444,10 +480,6 @@ var Mine = (function (_super) {
     function Mine() {
         return _super.call(this) || this;
     }
-    Mine.prototype.render = function (data, ts, x, y) {
-        var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
-        ts.draw(data, tx, ty, x, y);
-    };
     Mine.prototype.tile_pos = function (data) {
         return [0, 1];
     };
@@ -457,9 +489,14 @@ var Belt = (function () {
     function Belt(facing) {
         this.facing = facing;
     }
-    Belt.prototype.render = function (data, ts, x, y) {
+    Belt.prototype.render = function (data, ts, x, y, ghost) {
+        if (ghost === void 0) { ghost = false; }
+        console.log(x, y);
         var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
+        if (ghost)
+            data.ctx.globalAlpha = 0.5;
         ts.draw(data, tx, ty, x, y);
+        data.ctx.globalAlpha = 1;
     };
     Belt.prototype.tile_pos = function (data) {
         var ty = this.facing;
@@ -497,10 +534,34 @@ var MenuState = (function (_super) {
     };
     return MenuState;
 }(State));
+var BuildingType;
+(function (BuildingType) {
+    BuildingType[BuildingType["NONE"] = 0] = "NONE";
+    BuildingType[BuildingType["BELT"] = 1] = "BELT";
+})(BuildingType || (BuildingType = {}));
+var PlayerData = (function () {
+    function PlayerData() {
+        var _this = this;
+        this.selected_building = BuildingType.BELT;
+        this.selected_direction = Facing.UP;
+        function next(dir) {
+            switch (dir) {
+                case Facing.UP: return Facing.RIGHT;
+                case Facing.RIGHT: return Facing.DOWN;
+                case Facing.DOWN: return Facing.LEFT;
+                case Facing.LEFT: return Facing.UP;
+            }
+        }
+        document.addEventListener("keydown", function (e) { if (e.keyCode == 82)
+            _this.selected_direction = next(_this.selected_direction); });
+    }
+    return PlayerData;
+}());
 var PlayState = (function (_super) {
     __extends(PlayState, _super);
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
+        _this.player_data = new PlayerData();
         _this.asteroid = new Asteroid(new Map(100, 100, 25));
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
@@ -520,7 +581,7 @@ var PlayState = (function (_super) {
     PlayState.prototype.render = function () {
         this.data.ctx.fillStyle = "black";
         this.data.ctx.clearRect(0, 0, this.data.width, this.data.height);
-        this.asteroid.render(this.data, this.cam);
+        this.asteroid.render(this.data, this.player_data, this.cam);
     };
     return PlayState;
 }(State));
