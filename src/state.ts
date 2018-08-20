@@ -41,13 +41,14 @@ enum BuildingType {
 class PlayerData {
   selected_building : BuildingType = BuildingType.BELT;
   selected_direction : Facing = Facing.UP;
+
   constructor(){
     function next(dir : Facing) {
       switch (dir) {
-      case Facing.UP: return Facing.RIGHT;
+      case Facing.UP:    return Facing.RIGHT;
       case Facing.RIGHT: return Facing.DOWN;
-      case Facing.DOWN: return Facing.LEFT;
-      case Facing.LEFT: return Facing.UP;
+      case Facing.DOWN:  return Facing.LEFT;
+      case Facing.LEFT:  return Facing.UP;
       }
     }
     document.addEventListener("keydown", e => {if (e.keyCode == 82) this.selected_direction = next(this.selected_direction);});
@@ -69,6 +70,8 @@ class PlayState extends State {
     this.cam = new Point(0,0);
     this.leftover_t = 0;
     this.UI = [];
+    let button_tileset = new Tileset('asset/test_button.ts', 32);
+    let test_button = new Button(button_tileset);
   }
 
   public tick() : State {
@@ -90,10 +93,6 @@ class PlayState extends State {
     this.data.ctx.fillStyle = "black";
     this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
     this.asteroid.render(this.data, this.player_data, this.cam);
-
-
-    for(let E of this.UI) {
-      E.render(this.data);
-    }
+    for(let E of this.UI)  E.render(this.data);
   }
 }

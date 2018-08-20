@@ -103,7 +103,6 @@ class Map {
     if (coordinates.y < 0 || coordinates.y >= this.height) return;
     switch (player_data.selected_building) {
       case BuildingType.BELT:
-        console.log("blah");
         let g = new Belt(player_data.selected_direction);
         g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
         break;

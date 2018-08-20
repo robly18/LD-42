@@ -23,12 +23,12 @@ class Asteroid {
     let delta = mpos_in_space.minus(this.player.pos);
 
     this.map.render_background(data, cam);
-    if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+    if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE)
       this.map.render_ghost(data, mpos_in_space, player_data, cam);
-    }
-    for (let e of this.entities) {
+
+    for (let e of this.entities)
       e.render(data, cam);
-    }
+
     this.player.render(data,cam);
     this.map.render_foreground(data, cam);
   }
