@@ -19,12 +19,28 @@ var Asteroid = (function () {
         this.player.movement = new PlayerMovementComponent();
         this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
     }
-    Asteroid.prototype.tick = function (data) {
+    Asteroid.prototype.tick = function (data, player_data, cam) {
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
             e.tick(data, this);
         }
         this.player.tick(data, this);
+        if (data.mouse[0] && player_data.building_materials > 0) {
+            var mpos_in_space = data.mpos.plus(cam);
+            var delta = mpos_in_space.minus(this.player.pos);
+            if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+                if (this.map.build(data, mpos_in_space, player_data))
+                    player_data.building_materials--;
+            }
+        }
+        if (data.mouse[2]) {
+            var mpos_in_space = data.mpos.plus(cam);
+            var delta = mpos_in_space.minus(this.player.pos);
+            if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+                if (this.map.destroy_belt(new Point(Math.floor(mpos_in_space.x / tile_size), Math.floor(mpos_in_space.y / tile_size))))
+                    player_data.building_materials++;
+            }
+        }
     };
     Asteroid.prototype.render = function (data, player_data, cam) {
         var mpos_in_space = data.mpos.plus(cam);
@@ -136,8 +152,11 @@ var GameData = (function () {
         this.prev_t = Date.now();
         this.new_t = Date.now();
         this.keys = {};
+        this.mouse = [false, false, false];
         document.addEventListener("keydown", function (e) { _this.keys[e.keyCode] = true; });
         document.addEventListener("keyup", function (e) { delete _this.keys[e.keyCode]; });
+        document.addEventListener("mousedown", function (e) { _this.mouse[e.button] = true; });
+        document.addEventListener("mouseup", function (e) { _this.mouse[e.button] = false; });
         this.mpos = new Point(0, 0);
         this.canvas.addEventListener("mousemove", function (e) {
             var mpos = _this.mpos;
@@ -319,11 +338,22 @@ var Map = (function () {
             return;
         switch (player_data.selected_building) {
             case BuildingType.BELT:
-                console.log("blah");
                 var g = new Belt(player_data.selected_direction);
                 g.render(data, this.tileset, coordinates.x * tile_size - cam.x, coordinates.y * tile_size - cam.y, true);
                 break;
             default: break;
+        }
+    };
+    Map.prototype.build = function (data, pos, player_data) {
+        var coordinates = new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size));
+        if (coordinates.x < 0 || coordinates.x >= this.width)
+            return false;
+        if (coordinates.y < 0 || coordinates.y >= this.height)
+            return false;
+        switch (player_data.selected_building) {
+            case BuildingType.BELT:
+                return this.add_belt(new Point(coordinates.x, coordinates.y), player_data.selected_direction);
+            default: return false;
         }
     };
     Map.prototype.generate = function (req) {
@@ -400,16 +430,30 @@ var Map = (function () {
             }
             else {
                 this.surface[i][j] = new Prop(pos);
-                this.surface[j][j].belt = new Belt(dir);
+                this.surface[i][j].belt = new Belt(dir);
                 return true;
             }
         }
         else {
             this.surface[i] = {};
             this.surface[i][j] = new Prop(pos);
-            this.surface[j][j].belt = new Belt(dir);
+            this.surface[i][j].belt = new Belt(dir);
             return true;
         }
+    };
+    Map.prototype.destroy_belt = function (pos) {
+        var i = pos.x;
+        var j = pos.y;
+        if (i in this.surface) {
+            if (j in this.surface[i]) {
+                var p = this.surface[i][j];
+                if (p.belt != null) {
+                    p.belt = null;
+                    return true;
+                }
+            }
+        }
+        return false;
     };
     Map.prototype.get_prop = function (p) {
         if (p.x in this.surface)
@@ -527,7 +571,6 @@ var Belt = (function () {
     }
     Belt.prototype.render = function (data, ts, x, y, ghost) {
         if (ghost === void 0) { ghost = false; }
-        console.log(x, y);
         var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
         if (ghost)
             data.ctx.globalAlpha = 0.5;
@@ -590,6 +633,7 @@ var PlayerData = (function () {
         }
         document.addEventListener("keydown", function (e) { if (e.keyCode == 82)
             _this.selected_direction = next(_this.selected_direction); });
+        this.building_materials = 10;
     }
     return PlayerData;
 }());
@@ -608,7 +652,7 @@ var PlayState = (function (_super) {
         this.leftover_t += this.data.dt();
         while (this.leftover_t >= DT) {
             this.leftover_t -= DT;
-            this.asteroid.tick(this.data);
+            this.asteroid.tick(this.data, this.player_data, this.cam);
             var player_pos = this.asteroid.player.pos;
             this.cam.x = player_pos.x - this.data.width / 2;
             this.cam.y = player_pos.y - this.data.height / 2;

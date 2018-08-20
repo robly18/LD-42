@@ -10,6 +10,8 @@ class GameData {
 
   keys : { [id:number]: boolean };
   mpos : Point;
+
+  mouse : [boolean, boolean, boolean]; //left, middle, right
   
   constructor(canvas : HTMLCanvasElement) {
     this.canvas = canvas;
@@ -22,8 +24,12 @@ class GameData {
     this.new_t = Date.now();
 
     this.keys = {};
+    this.mouse = [false,false,false];
     document.addEventListener("keydown", e => {this.keys[e.keyCode] = true;});
     document.addEventListener("keyup", e => {delete this.keys[e.keyCode];});
+    document.addEventListener("mousedown", e => {this.mouse[e.button] = true;});
+    document.addEventListener("mouseup", e => {this.mouse[e.button] = false;});
+    
     this.mpos = new Point(0,0);
     this.canvas.addEventListener("mousemove", e => {
       let mpos=this.mpos;

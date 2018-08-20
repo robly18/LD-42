@@ -110,6 +110,17 @@ class Map {
     }
   }
 
+  public build(data : GameData, pos : Point, player_data : PlayerData) : boolean {
+    let coordinates = new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size));
+    if (coordinates.x < 0 || coordinates.x >= this.width) return false;
+    if (coordinates.y < 0 || coordinates.y >= this.height) return false;
+    switch (player_data.selected_building) {
+      case BuildingType.BELT:
+        return this.add_belt(new Point(coordinates.x, coordinates.y), player_data.selected_direction);
+      default: return false;
+    }
+  }
+
   public generate(req: [number, number, number]) {
     let queue: [Point, number][] = [];
     let seed: Point = new Point(rand_int(this.width), rand_int(this.height));
@@ -183,15 +194,29 @@ class Map {
         } else return false;
       } else {
         this.surface[i][j] = new Prop(pos);
-        this.surface[j][j].belt = new Belt(dir);
+        this.surface[i][j].belt = new Belt(dir);
         return true;
       }
     } else {
       this.surface[i] = {};
       this.surface[i][j] = new Prop(pos);
-      this.surface[j][j].belt = new Belt(dir);
+      this.surface[i][j].belt = new Belt(dir);
       return true;
     }
+  }
+  public destroy_belt(pos : Point) : boolean {
+    let i = pos.x;
+    let j = pos.y;
+    if (i in this.surface) {
+      if (j in this.surface[i]) {
+        let p = this.surface[i][j]
+        if (p.belt != null) {
+          p.belt = null;
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public get_prop(p : Point) : Prop | null {
