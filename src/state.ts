@@ -89,7 +89,8 @@ class PlayState extends State {
   public render() {
     this.data.ctx.fillStyle = "black";
     this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
-    this.asteroid.render(this.data, this.cam);
+    this.asteroid.render(this.data, this.player_data, this.cam);
+
 
     for(let E of this.UI) {
       E.render(this.data);

@@ -39,6 +39,39 @@ var Asteroid = (function () {
     };
     return Asteroid;
 }());
+var Button = (function () {
+    function Button(tileset, screen_pos, tileset_pos, when_pressed) {
+        this.pressed = 0;
+        this.tileset = tileset;
+        this.screen_pos = screen_pos;
+        this.tileset_pos = tileset_pos;
+        this.when_pressed = when_pressed;
+    }
+    Button.prototype.render = function (data) {
+        var _a = [this.tileset_pos.x, this.tileset_pos.y], tx = _a[0], ty = _a[1];
+        if (this.pressed) {
+            tx += 1;
+            ty += 1;
+        }
+        this.tileset.draw(data, tx, ty, this.screen_pos.x, this.screen_pos.y);
+    };
+    Button.prototype.tick = function () {
+        if (this.pressed) {
+            var delta = Date.now() - this.time_pressed;
+            if (delta > 100)
+                this.toggle();
+        }
+    };
+    Button.prototype.on_click = function () {
+        if (!this.pressed) {
+            this.toggle();
+            this.time_pressed = Date.now();
+            this.when_pressed();
+        }
+    };
+    Button.prototype.toggle = function () { this.pressed = (this.pressed + 1) % 2; };
+    return Button;
+}());
 var Entity = (function () {
     function Entity(pos, floating) {
         if (floating === void 0) { floating = false; }
@@ -565,6 +598,7 @@ var PlayState = (function (_super) {
         _this.asteroid = new Asteroid(new Map(100, 100, 25));
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
+        _this.UI = [];
         return _this;
     }
     PlayState.prototype.tick = function () {
@@ -575,6 +609,10 @@ var PlayState = (function (_super) {
             var player_pos = this.asteroid.player.pos;
             this.cam.x = player_pos.x - this.data.width / 2;
             this.cam.y = player_pos.y - this.data.height / 2;
+            for (var _i = 0, _a = this.UI; _i < _a.length; _i++) {
+                var E = _a[_i];
+                E.tick();
+            }
         }
         return this;
     };
@@ -582,6 +620,10 @@ var PlayState = (function (_super) {
         this.data.ctx.fillStyle = "black";
         this.data.ctx.clearRect(0, 0, this.data.width, this.data.height);
         this.asteroid.render(this.data, this.player_data, this.cam);
+        for (var _i = 0, _a = this.UI; _i < _a.length; _i++) {
+            var E = _a[_i];
+            E.render(this.data);
+        }
     };
     return PlayState;
 }(State));
