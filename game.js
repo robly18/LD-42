@@ -239,7 +239,7 @@ var Map = (function () {
                 this.ground[i][j] = null;
             }
         }
-        this.generate([100, 100, 100]);
+        this.generate([500, 100, 100]);
         this.add_prop(new Belt(new Point(3, 3), Facing.UP));
         this.add_prop(new Belt(new Point(3, 2), Facing.RIGHT));
         this.add_prop(new Belt(new Point(4, 2), Facing.RIGHT));
@@ -316,7 +316,7 @@ var Map = (function () {
                 if (idx == 3)
                     new_pos.y -= 1;
                 if (cur_gen < this.max_gen && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-                    this.ground[new_pos.x][new_pos.y] = new Tile(Resource.MATTER, 100);
+                    this.ground[new_pos.x][new_pos.y] = new Tile(Resource.ICE, 100);
                     queue.push([new_pos, cur_gen + 1]);
                 }
             }
