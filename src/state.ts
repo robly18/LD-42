@@ -53,7 +53,12 @@ class PlayerData {
       case Facing.LEFT:  return Facing.UP;
       }
     }
-    document.addEventListener("keydown", e => {if (e.keyCode == 82) this.selected_direction = next(this.selected_direction);});
+    document.addEventListener("keydown", e => {
+      if (e.keyCode == 82) this.selected_direction = next(this.selected_direction);
+      if (e.keyCode == 81) this.selected_building = BuildingType.NONE;
+      if (e.keyCode == 66) this.selected_building = BuildingType.BELT;
+      if (e.keyCode == 77) this.selected_building = BuildingType.MINE;
+    });
     this.building_materials = 10;
   }
 }

@@ -697,8 +697,16 @@ var PlayerData = (function () {
                 case Facing.LEFT: return Facing.UP;
             }
         }
-        document.addEventListener("keydown", function (e) { if (e.keyCode == 82)
-            _this.selected_direction = next(_this.selected_direction); });
+        document.addEventListener("keydown", function (e) {
+            if (e.keyCode == 82)
+                _this.selected_direction = next(_this.selected_direction);
+            if (e.keyCode == 81)
+                _this.selected_building = BuildingType.NONE;
+            if (e.keyCode == 66)
+                _this.selected_building = BuildingType.BELT;
+            if (e.keyCode == 77)
+                _this.selected_building = BuildingType.MINE;
+        });
         this.building_materials = 10;
     }
     return PlayerData;
@@ -713,7 +721,6 @@ var PlayState = (function (_super) {
         _this.leftover_t = 0;
         _this.UI = [];
         var button_tileset = new Tileset('asset/test_button.ts', 32);
-        var test_button = new Button(button_tileset);
         return _this;
     }
     PlayState.prototype.tick = function () {
