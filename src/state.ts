@@ -60,6 +60,7 @@ class PlayState extends State {
   cam : Point;
 
   leftover_t : number;
+  UI : UIElement[];
 
   constructor(data : GameData) {
     super(data);
@@ -67,6 +68,7 @@ class PlayState extends State {
     this.asteroid = new Asteroid(new Map(100,100,25));
     this.cam = new Point(0,0);
     this.leftover_t = 0;
+    this.UI = [];
   }
 
   public tick() : State {
@@ -79,6 +81,7 @@ class PlayState extends State {
       let player_pos = this.asteroid.player.pos;
       this.cam.x = player_pos.x - this.data.width/2;
       this.cam.y = player_pos.y - this.data.height/2;
+      for(let E of this.UI) E.tick();
     }
     return this;
   }
@@ -86,7 +89,10 @@ class PlayState extends State {
   public render() {
     this.data.ctx.fillStyle = "black";
     this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
-    this.asteroid.render(this.data, this.player_data, this.cam);
+    this.asteroid.render(this.data, this.cam);
 
+    for(let E of this.UI) {
+      E.render(this.data);
+    }
   }
 }
