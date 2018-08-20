@@ -59,15 +59,9 @@ class Map {
     }
 
     this.generate([100,100,100]);
-    this.add_prop(new Belt(new Point(3,3), Facing.UP));
-    this.add_prop(new Belt(new Point(3,2), Facing.RIGHT));
-    this.add_prop(new Belt(new Point(4,2), Facing.RIGHT));
-    this.add_prop(new Belt(new Point(5,2), Facing.DOWN));
-    this.add_prop(new Belt(new Point(5,3), Facing.LEFT));
-    this.add_prop(new Belt(new Point(4,3), Facing.LEFT));
   }
 
-  public render(data : GameData, cam : Point) {
+  public render_background(data : GameData, cam : Point) {
     let img = new Image();
     img.src = 'assets/background.png';
     data.ctx.drawImage(img, -100 - cam.x/10, -100 - cam.y/10);
@@ -88,7 +82,17 @@ class Map {
       let col = this.surface[i];
       for (let j in col) {
         let p : Prop = col[j];
-        p.render(data, this.tileset, p.pos.x*tile_size - cam.x, p.pos.y*tile_size - cam.y);
+        p.render_background(data, this.tileset, p.pos.x*tile_size - cam.x, p.pos.y*tile_size - cam.y);
+      }
+    }
+  }
+
+  public render_foreground(data : GameData, cam : Point) {
+    for (let i in this.surface) {
+      let col = this.surface[i];
+      for (let j in col) {
+        let p : Prop = col[j];
+        p.render_foreground(data, this.tileset, p.pos.x*tile_size - cam.x, p.pos.y*tile_size - cam.y);
       }
     }
   }

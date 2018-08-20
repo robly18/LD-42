@@ -24,12 +24,12 @@ var Asteroid = (function () {
         }
     };
     Asteroid.prototype.render = function (data, cam) {
-        var ctx = data.ctx;
-        this.map.render(data, cam);
+        this.map.render_background(data, cam);
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
             e.render(data, cam);
         }
+        this.map.render_foreground(data, cam);
     };
     return Asteroid;
 }());
@@ -229,14 +229,8 @@ var Map = (function () {
             }
         }
         this.generate([100, 100, 100]);
-        this.add_prop(new Belt(new Point(3, 3), Facing.UP));
-        this.add_prop(new Belt(new Point(3, 2), Facing.RIGHT));
-        this.add_prop(new Belt(new Point(4, 2), Facing.RIGHT));
-        this.add_prop(new Belt(new Point(5, 2), Facing.DOWN));
-        this.add_prop(new Belt(new Point(5, 3), Facing.LEFT));
-        this.add_prop(new Belt(new Point(4, 3), Facing.LEFT));
     };
-    Map.prototype.render = function (data, cam) {
+    Map.prototype.render_background = function (data, cam) {
         var img = new Image();
         img.src = 'assets/background.png';
         data.ctx.drawImage(img, -100 - cam.x / 10, -100 - cam.y / 10);
@@ -256,7 +250,16 @@ var Map = (function () {
             var col = this.surface[i];
             for (var j in col) {
                 var p = col[j];
-                p.render(data, this.tileset, p.pos.x * tile_size - cam.x, p.pos.y * tile_size - cam.y);
+                p.render_background(data, this.tileset, p.pos.x * tile_size - cam.x, p.pos.y * tile_size - cam.y);
+            }
+        }
+    };
+    Map.prototype.render_foreground = function (data, cam) {
+        for (var i in this.surface) {
+            var col = this.surface[i];
+            for (var j in col) {
+                var p = col[j];
+                p.render_foreground(data, this.tileset, p.pos.x * tile_size - cam.x, p.pos.y * tile_size - cam.y);
             }
         }
     };
@@ -406,40 +409,65 @@ var PlayerMovementComponent = (function () {
 }());
 var Prop = (function () {
     function Prop(pos) {
+        this.belt = null;
+        this.building = null;
         this.pos = pos;
     }
-    Prop.prototype.render = function (data, ts, x, y) {
+    Prop.prototype.render_background = function (data, ts, x, y) {
+        if (this.belt != null)
+            this.belt.render(data, ts, x, y);
+    };
+    Prop.prototype.render_foreground = function (data, ts, x, y) {
+        if (this.building != null)
+            this.building.render(data, ts, x, y);
+    };
+    Prop.prototype.belt_dir = function () {
+        if (this.belt == null)
+            return null;
+        else
+            return this.belt.facing;
+    };
+    return Prop;
+}());
+var Building = (function () {
+    function Building() {
+    }
+    ;
+    Building.prototype.render = function (data, ts, x, y) {
         var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
         ts.draw(data, tx, ty, x, y);
     };
-    Prop.prototype.belt_dir = function () { return null; };
-    return Prop;
+    return Building;
 }());
 var Mine = (function (_super) {
     __extends(Mine, _super);
-    function Mine(pos) {
-        return _super.call(this, pos) || this;
+    function Mine() {
+        return _super.call(this) || this;
     }
+    Mine.prototype.render = function (data, ts, x, y) {
+        var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
+        ts.draw(data, tx, ty, x, y);
+    };
     Mine.prototype.tile_pos = function (data) {
         return [0, 1];
     };
     return Mine;
-}(Prop));
-var Belt = (function (_super) {
-    __extends(Belt, _super);
-    function Belt(pos, facing) {
-        var _this = _super.call(this, pos) || this;
-        _this.facing = facing;
-        return _this;
+}(Building));
+var Belt = (function () {
+    function Belt(facing) {
+        this.facing = facing;
     }
-    Belt.prototype.belt_dir = function () { return this.facing; };
+    Belt.prototype.render = function (data, ts, x, y) {
+        var _a = this.tile_pos(data), tx = _a[0], ty = _a[1];
+        ts.draw(data, tx, ty, x, y);
+    };
     Belt.prototype.tile_pos = function (data) {
         var ty = this.facing;
         var tx = 4 + Math.floor(data.curr_t() / 1000 * BELT_SPEED_PXPERSEC) % 4;
         return [tx, ty];
     };
     return Belt;
-}(Prop));
+}());
 var State = (function () {
     function State(data) {
         this.data = data;
