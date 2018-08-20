@@ -38,7 +38,7 @@ abstract class Building {
 
 class Mine extends Building {
   ticks_since_mined : number = 0;
-  ticks_between_mine : number = 200;
+  ticks_between_mine : number = TICKS_PER_MINE;
 
   constructor() {
     super();
@@ -53,17 +53,27 @@ class Mine extends Building {
   }
 
   public mine(coords : Point, asteroid : Asteroid) {
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
+    let likelihood : [number, Point][] = [];
+    let total : number = 0;
+    for (let dx = -2; dx <= 2; dx++) {
+      for (let dy = -2; dy <= 2; dy++) {
         let nc = coords.plus(new Point(dx,dy));
         if (!asteroid.map.emptyTile(nc)) {
-          let g = asteroid.map.ground[nc.x][nc.y] as Tile;
-          g.quantity--;
-          asteroid.entities.push(make_item(coords, g.type));
-          if (g.quantity == 0) asteroid.deleteTileAt(nc);
+          let this_likelihood = 3 - Math.sqrt(dx*dx + dy*dy);
+          if (asteroid.map.get_prop(nc) != null) this_likelihood /= 2;
+          total += this_likelihood;
+          likelihood.push([total, nc]);
         }
       }
     }
+    let n = Math.random() * total;
+    let i = 0;
+    while (n >= likelihood[i][0]) i++;
+    let nc = likelihood[i][1];
+    let g = asteroid.map.ground[nc.x][nc.y] as Tile;
+    g.quantity--;
+    asteroid.entities.push(make_item(coords, g.type));
+    if (g.quantity == 0) asteroid.deleteTileAt(nc);
   }
 
   protected tile_pos(data : GameData) : [number, number] {

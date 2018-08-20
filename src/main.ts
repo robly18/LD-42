@@ -1,7 +1,7 @@
 const DT = 1000/60;
 const BELT_SPEED_PXPERSEC = 32;
 const BUILDING_RANGE = 100;
-const TICKS_PER_MINE = 150;
+const TICKS_PER_MINE = 20;
 const GROUND_MAX_VALUE = 32;
 
 const CONSTRUCTION_PARTS_RECIPE : [number, number, number] = [5, 0, 1/16];
