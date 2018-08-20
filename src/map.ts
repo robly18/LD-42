@@ -15,7 +15,9 @@ class Tile {
   }
   public render(data : GameData, ts : Tileset, x : number, y : number) {
     let [tx, ty] = this.tilePos();
+    data.ctx.globalAlpha = this.quantity/GROUND_MAX_VALUE;
     ts.draw(data, tx, ty, x, y);
+    data.ctx.globalAlpha = 1;
   }
 
   private tilePos() : [number, number] {
@@ -109,8 +111,7 @@ class Map {
 
   public render_ghost(data : GameData, pos : Point, player_data : PlayerData, cam : Point) {
     let coordinates = new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size));
-    if (coordinates.x < 0 || coordinates.x >= this.width) return;
-    if (coordinates.y < 0 || coordinates.y >= this.height) return;
+    if (this.emptyTile(coordinates)) return false;
     switch (player_data.selected_building) {
       case BuildingType.BELT: {
         let g = new Belt(player_data.selected_direction);
@@ -147,7 +148,7 @@ class Map {
       for(let i = 0; i < req[k]; i++) {
         while(this.ground[seed.x][seed.y])
           seed = new Point(rand_int(this.width), rand_int(this.height));
-        this.ground[seed.x][seed.y] = new Tile(k, 100);
+        this.ground[seed.x][seed.y] = new Tile(k, GROUND_MAX_VALUE);
 
         let to_fill: number[][] = [];
         for(let j = 0; j < 8; j++)
@@ -159,7 +160,7 @@ class Map {
           new_pos.y += idx[1];
 
           if(i < req[k] && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-            this.ground[new_pos.x][new_pos.y] = new Tile(k, 100);
+            this.ground[new_pos.x][new_pos.y] = new Tile(k, GROUND_MAX_VALUE);
             queue.push([new_pos, 0]);
             i++;
           }
@@ -185,7 +186,7 @@ class Map {
         if(idx == 3) new_pos.y -= 1;
 
         if(cur_gen < this.max_gen && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-          this.ground[new_pos.x][new_pos.y] = new Tile(Resource.ICE, 100);
+          this.ground[new_pos.x][new_pos.y] = new Tile(Resource.ICE, GROUND_MAX_VALUE);
           queue.push([new_pos, cur_gen+1]);
         }
       }
@@ -200,7 +201,16 @@ class Map {
     return (this.ground[i][j] == null);
   }
 
+  public emptyTile(p :Point ) {
+    let i = p.x;
+    let j = p.y;
+    if (i < 0 || i >= this.width) return true;
+    if (j < 0 || j >= this.width) return true;
+    return (this.ground[i][j] == null);
+  }
+
   public add_belt(pos : Point, dir : Facing) : boolean {
+    if (this.emptyTile(pos)) return false;
     let i = pos.x;
     let j = pos.y;
     if (i in this.surface) {
@@ -223,6 +233,7 @@ class Map {
     }
   }
   public destroy_belt(pos : Point) : boolean {
+    if (this.emptyTile(pos)) return false;
     let i = pos.x;
     let j = pos.y;
     if (i in this.surface) {
@@ -238,6 +249,7 @@ class Map {
   }
 
   public add_building(pos : Point, b : Building) : boolean {
+    if (this.emptyTile(pos)) return false;
     let i = pos.x;
     let j = pos.y;
     if (i in this.surface) {

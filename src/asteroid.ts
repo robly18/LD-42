@@ -49,4 +49,9 @@ class Asteroid {
     this.player.render(data,cam);
     this.map.render_foreground(data, cam);
   }
+
+  public deleteTileAt(pos : Point) {
+    this.map.ground[pos.x][pos.y] = null;
+    if (pos.x in this.map.surface) delete this.map.surface[pos.x][pos.y];
+  }
 }

@@ -36,7 +36,7 @@ abstract class Building {
 
 class Mine extends Building {
   ticks_since_mined : number = 0;
-  ticks_between_mine : number = 10;
+  ticks_between_mine : number = 200;
 
   constructor() {
     super();
@@ -46,7 +46,21 @@ class Mine extends Building {
     this.ticks_since_mined++;
     if (this.ticks_since_mined >= this.ticks_between_mine) {
       this.ticks_since_mined = 0;
-      asteroid.entities.push(make_item(coords, Resource.ICE));
+      this.mine(coords, asteroid);
+    }
+  }
+
+  public mine(coords : Point, asteroid : Asteroid) {
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        let nc = coords.plus(new Point(dx,dy));
+        if (!asteroid.map.emptyTile(nc)) {
+          let g = asteroid.map.ground[nc.x][nc.y] as Tile;
+          g.quantity--;
+          asteroid.entities.push(make_item(coords, g.type));
+          if (g.quantity == 0) asteroid.deleteTileAt(nc);
+        }
+      }
     }
   }
 
