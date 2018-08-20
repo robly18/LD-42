@@ -11,15 +11,23 @@ class Asteroid {
     this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
   }
 
-  public tick(data : GameData) {
+  public tick(data : GameData, player_data : PlayerData, cam : Point) {
     for (let e of this.entities) {
       e.tick(data, this);
     }
     this.player.tick(data, this);
+
+    if (data.mouse[0]) {
+      let mpos_in_space = data.mpos.plus(cam);
+      let delta = mpos_in_space.minus(this.player.pos);
+      if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
+        this.map.build(data, mpos_in_space, player_data);
+      }
+    }
   }
 
   public render(data : GameData, player_data : PlayerData, cam : Point) {
-    let mpos_in_space =   data.mpos.plus(cam);
+    let mpos_in_space = data.mpos.plus(cam);
     let delta = mpos_in_space.minus(this.player.pos);
 
     this.map.render_background(data, cam);

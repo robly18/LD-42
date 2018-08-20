@@ -76,7 +76,7 @@ class PlayState extends State {
     
     while(this.leftover_t >= DT) {
       this.leftover_t -= DT;
-      this.asteroid.tick(this.data);
+      this.asteroid.tick(this.data, this.player_data, this.cam);
 
       let player_pos = this.asteroid.player.pos;
       this.cam.x = player_pos.x - this.data.width/2;

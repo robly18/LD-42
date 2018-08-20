@@ -47,7 +47,6 @@ class Belt {
   }
 
   public render(data : GameData, ts : Tileset, x : number, y : number, ghost : boolean = false) {
-    console.log(x,y);
     let [tx, ty] = this.tile_pos(data);
     if (ghost) data.ctx.globalAlpha = 0.5;
     ts.draw(data, tx, ty, x, y);

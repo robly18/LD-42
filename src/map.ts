@@ -103,11 +103,21 @@ class Map {
     if (coordinates.y < 0 || coordinates.y >= this.height) return;
     switch (player_data.selected_building) {
       case BuildingType.BELT:
-        console.log("blah");
         let g = new Belt(player_data.selected_direction);
         g.render(data, this.tileset, coordinates.x*tile_size - cam.x, coordinates.y*tile_size - cam.y, true);
         break;
       default: break;
+    }
+  }
+
+  public build(data : GameData, pos : Point, player_data : PlayerData) : boolean {
+    let coordinates = new Point(Math.floor(pos.x/tile_size), Math.floor(pos.y/tile_size));
+    if (coordinates.x < 0 || coordinates.x >= this.width) return false;
+    if (coordinates.y < 0 || coordinates.y >= this.height) return false;
+    switch (player_data.selected_building) {
+      case BuildingType.BELT:
+        return this.add_belt(new Point(coordinates.x, coordinates.y), player_data.selected_direction);
+      default: return false;
     }
   }
 
@@ -184,13 +194,13 @@ class Map {
         } else return false;
       } else {
         this.surface[i][j] = new Prop(pos);
-        this.surface[j][j].belt = new Belt(dir);
+        this.surface[i][j].belt = new Belt(dir);
         return true;
       }
     } else {
       this.surface[i] = {};
       this.surface[i][j] = new Prop(pos);
-      this.surface[j][j].belt = new Belt(dir);
+      this.surface[i][j].belt = new Belt(dir);
       return true;
     }
   }
