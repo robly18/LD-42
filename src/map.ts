@@ -63,7 +63,8 @@ class Map {
     this.add_prop(new Belt(new Point(3,2), Facing.RIGHT));
     this.add_prop(new Belt(new Point(4,2), Facing.RIGHT));
     this.add_prop(new Belt(new Point(5,2), Facing.DOWN));
-    this.add_prop(new Belt(new Point(5,3), Facing.UP));
+    this.add_prop(new Belt(new Point(5,3), Facing.LEFT));
+    this.add_prop(new Belt(new Point(4,3), Facing.LEFT));
   }
 
   public render(data : GameData, cam : Point) {
