@@ -46,14 +46,14 @@ class Entity {
 
       this.velocity = this.velocity.minus(belt_velocity);
     } else {
-      this.pos = this.pos.plus(this.velocity);
+      this.pos = this.pos.plus(this.velocity.times(DT));
     }
     if (this.item != null) return !this.item.given(coordinate, asteroid);
     else return true;
   }
 
-  public render(data: GameData, cam: Point) {
-    if (this.graphics != null) this.graphics.render(data, this, cam);
+  public render(data: GameData, player_data : PlayerData, cam: Point) {
+    if (this.graphics != null) this.graphics.render(data, this, player_data, cam);
   }
 
   item     : ItemComponent     | null = null;
