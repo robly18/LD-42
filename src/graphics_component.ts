@@ -1,6 +1,6 @@
 abstract class GraphicsComponent {
   constructor(){}
-  public abstract render(data: GameData, entity: Entity, cam : Point): void;
+  public abstract render(data: GameData, entity: Entity, player_data : PlayerData, cam : Point): void;
 }
 
 enum Facing {
@@ -21,7 +21,7 @@ class CreatureGraphicsComponent {
     this.timePerFrame = timePerFrame;
   }
 
-  public render(data: GameData, entity: Entity, cam : Point) {
+  public render(data: GameData, entity: Entity, player_data : PlayerData, cam : Point) {
     if (entity.velocity.x == 0 && entity.velocity.y == 0) {
       this.timeInThisState = 0;
     } else {
@@ -36,7 +36,10 @@ class CreatureGraphicsComponent {
     }
     let tx = Math.floor(this.timeInThisState/this.timePerFrame) % 4;
     let tileset = this.tileset;
-    tileset.draw(data, tx, this.facing, data.width/2 - tileset.tile_width/2, data.height/2 - tileset.tile_height);
+    if (!player_data.jetpack)
+      tileset.draw(data, tx, this.facing, data.width/2 - tileset.tile_width/2, data.height/2 - tileset.tile_height);
+    else
+      tileset.draw(data, 4, this.facing, data.width/2 - tileset.tile_width/2, data.height/2 - tileset.tile_height);
   }
 
   private facingDirection(entity : Entity) : Facing {
@@ -56,7 +59,7 @@ class StaticGraphicsComponent {
   constructor(ts : Tileset, tx : number, ty : number){
     this.ts = ts; this.tx = tx; this.ty = ty;
   }
-  public render(data: GameData, entity: Entity, cam : Point) {
+  public render(data: GameData, entity: Entity, player_data : PlayerData, cam : Point) {
     this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x - this.ts.tile_width/2, entity.pos.y - cam.y - this.ts.tile_height);
   }
 }

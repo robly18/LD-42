@@ -48,6 +48,8 @@ class PlayerData {
 
   construction_parts : number;
   fuel : number;
+
+  jetpack : boolean;
   constructor(){
     function next(dir : Facing) {
       switch (dir) {
@@ -62,10 +64,13 @@ class PlayerData {
       if (e.keyCode == 81) this.selected_building = BuildingType.NONE;
       if (e.keyCode == 66) this.selected_building = BuildingType.BELT;
       if (e.keyCode == 77) this.selected_building = BuildingType.MINE;
-      if (e.keyCode == 70) this.selected_building = BuildingType.FUEL_FACTORY;
+      if (e.keyCode == 70) this.selected_building = BuildingType.FUEL_FACTORY
       if (e.keyCode == 67) this.selected_building = BuildingType.CONSTRUCTION_PARTS_FACTORY;
+      if (e.keyCode == 74) {if (this.fuel > 0) this.jetpack = !this.jetpack;}
     });
     this.construction_parts = 10;
+    this.fuel = 100;
+    this.jetpack = false;
   }
 }
 
