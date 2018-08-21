@@ -2,6 +2,7 @@ class Asteroid {
   map : Map;
   entities : Entity[];
   player : Entity;
+  asteroids : [Point, Point][];
 
   constructor(map : Map) {
     this.map = map;
