@@ -100,6 +100,7 @@ class PlayState extends State {
     this.UI.push(new SelectionButton(buttons_tileset, new Point(10,78), new Point(0,0), BuildingType.FUEL_FACTORY));
     this.UI.push(new SelectionButton(buttons_tileset, new Point(10,112), new Point(0,0), BuildingType.CONSTRUCTION_PARTS_FACTORY));
     this.UI.push(new MineralCounter(0, 0, new Point(10, 590)));
+    this.UI.push(new FuelInfo(0, 0, new Point(10, 570)));
   }
 
   public tick() : State {

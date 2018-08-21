@@ -72,3 +72,30 @@ class MineralCounter implements UIElement {
 
   public on_click(data: GameData) {}
 }
+
+class FuelInfo implements UIElement {
+  width: number;
+  height: number;
+  screen_pos: Point;
+
+  fuel: number;
+
+  constructor(width: number, height: number, screen_pos: Point) {
+    this.width = width;
+    this.height = height;
+    this.screen_pos = screen_pos;
+    this.fuel = 0;
+  }
+
+  public tick(player_data: PlayerData) {
+    this.fuel = player_data.fuel;
+  }
+
+  public render(data: GameData) {
+    data.ctx.fillStyle = 'white';
+    data.ctx.font="13px Arial";
+    data.ctx.fillText("Fuel: " + this.fuel, this.screen_pos.x, this.screen_pos.y);
+  }
+
+  public on_click(data: GameData) {}
+}
