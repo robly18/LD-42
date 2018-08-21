@@ -157,6 +157,7 @@ class Map {
   public generate(req: [number, number, number]) {
     let queue: [Point, number][] = [];
     let seed: Point = new Point(rand_int(this.width), rand_int(this.height));
+    let ret: Point = seed;
 
     for(let k = 0; k < 3; k++) {
       for(let i = 0; i < req[k]; i++) {
@@ -205,6 +206,7 @@ class Map {
         }
       }
     }
+    return ret;
   }
 
   public empty(p : Point) {

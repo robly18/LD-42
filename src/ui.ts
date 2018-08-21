@@ -8,23 +8,23 @@ interface UIElement {
   tick(player_data: PlayerData) : void;
 }
 
-class Button implements UIElement {
+class SelectionButton implements UIElement {
   width: number;
   height: number;
   pressed : number;
   tileset : Tileset;
   screen_pos  : Point;
   tileset_pos : Point;
-  when_pressed : Function;
-  time_pressed : number;
 
-  constructor(tileset: Tileset, screen_pos: Point, tileset_pos: Point, when_pressed: Function) {
+  switch_to : BuildingType;
+
+  constructor(tileset: Tileset, screen_pos: Point, tileset_pos: Point, switch_to: BuildingType) {
     this.pressed = 0;
     this.tileset = tileset;
     this.screen_pos = screen_pos;
     this.tileset_pos = tileset_pos;
-    this.when_pressed = when_pressed;
 
+    this.switch_to = switch_to;
     this.width = tileset.tile_width;
     this.height = tileset.tile_height;
   }
@@ -36,19 +36,11 @@ class Button implements UIElement {
   }
 
   public tick(player_data: PlayerData) {
-    if(this.pressed) {
-      let delta = Date.now() - this.time_pressed;
-      if(delta > 100) this.toggle();
-    }
+    if(this.pressed) player_data.selected_building = this.switch_to;
   }
 
   public on_click(data: GameData) {
-    if(!this.pressed) {
-      this.toggle();
-      this.time_pressed = Date.now()
-
-      this.when_pressed();
-    }
+    this.toggle();
   }
 
   private toggle() { this.pressed = (this.pressed+1) % 2; }

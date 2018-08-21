@@ -88,11 +88,17 @@ class PlayState extends State {
     this.asteroid = new Asteroid(new Map(30,30,25));
     this.cam = new Point(0,0);
     this.leftover_t = 0;
+
+    this.init_UI();
+  }
+
+  public init_UI() {
     this.UI = [];
-    let button_tileset = new Tileset('assets/test_button.png', 32);
-    let test = function() {};
-    let test_button = new Button(button_tileset, new Point(10,10), new Point(0,0), test.bind(this.data));
-    this.UI.push(test_button);
+    let buttons_tileset = new Tileset('assets/test_button.png', 32);
+    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,44), new Point(0,0), BuildingType.MINE));
+    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,10), new Point(0,0), BuildingType.BELT));
+    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,78), new Point(0,0), BuildingType.FUEL_FACTORY));
+    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,112), new Point(0,0), BuildingType.CONSTRUCTION_PARTS_FACTORY));
     this.UI.push(new MineralCounter(0, 0, new Point(10, 590)));
   }
 
