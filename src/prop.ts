@@ -60,7 +60,7 @@ class Mine extends Building {
         let nc = coords.plus(new Point(dx,dy));
         if (!asteroid.map.emptyTile(nc)) {
           let this_likelihood = 3 - Math.sqrt(dx*dx + dy*dy);
-          if (asteroid.map.get_prop(nc) != null) this_likelihood /= 2;
+          if (asteroid.map.get_prop(nc) != null) this_likelihood /= 5;
           total += this_likelihood;
           likelihood.push([total, nc]);
         }

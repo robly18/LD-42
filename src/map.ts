@@ -255,6 +255,7 @@ class Map {
         let p = this.surface[i][j]
         if (p.belt != null) {
           p.belt = null;
+          if (p.building == null) delete this.surface[i][j];
           return true;
         }
       }
