@@ -60,7 +60,7 @@ class Map {
       }
     }
 
-    this.generate([500,100,100]);
+    this.generate([100,0,20]);
   }
 
   public tick(asteroid : Asteroid, player_data : PlayerData) {

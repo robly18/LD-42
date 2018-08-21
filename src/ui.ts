@@ -3,9 +3,9 @@ interface UIElement {
   height: number;
   screen_pos: Point;
 
-  tick() : void;
   render(data: GameData) : void;
   on_click(data: GameData) : void;
+  tick(player_data: PlayerData) : void;
 }
 
 class Button implements UIElement {
@@ -35,10 +35,10 @@ class Button implements UIElement {
     this.tileset.draw(data, tx, ty, this.screen_pos.x, this.screen_pos.y);
   }
 
-  public tick() {
+  public tick(player_data: PlayerData) {
     if(this.pressed) {
       let delta = Date.now() - this.time_pressed;
-      if(delta > 1000) this.toggle();
+      if(delta > 100) this.toggle();
     }
   }
 
@@ -48,9 +48,35 @@ class Button implements UIElement {
       this.time_pressed = Date.now()
 
       this.when_pressed();
-      console.log(data.mpos.x);
     }
   }
 
   private toggle() { this.pressed = (this.pressed+1) % 2; }
+}
+
+class MineralCounter implements UIElement {
+  width: number;
+  height: number;
+  screen_pos: Point;
+
+  construction_parts: number;
+
+  constructor(width: number, height: number, screen_pos: Point) {
+    this.width = width;
+    this.height = height;
+    this.screen_pos = screen_pos;
+    this.construction_parts = 0;
+  }
+
+  public tick(player_data: PlayerData) {
+    this.construction_parts = player_data.construction_parts;
+  }
+
+  public render(data: GameData) {
+    data.ctx.fillStyle = 'white';
+    data.ctx.font="13px Arial";
+    data.ctx.fillText("CP: " + this.construction_parts, this.screen_pos.x, this.screen_pos.y);
+  }
+
+  public on_click(data: GameData) {}
 }

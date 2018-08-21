@@ -85,7 +85,7 @@ class PlayState extends State {
   constructor(data : GameData) {
     super(data);
     this.player_data = new PlayerData();
-    this.asteroid = new Asteroid(new Map(100,100,25));
+    this.asteroid = new Asteroid(new Map(30,30,25));
     this.cam = new Point(0,0);
     this.leftover_t = 0;
     this.UI = [];
@@ -93,6 +93,7 @@ class PlayState extends State {
     let test = function() {};
     let test_button = new Button(button_tileset, new Point(10,10), new Point(0,0), test.bind(this.data));
     this.UI.push(test_button);
+    this.UI.push(new MineralCounter(0, 0, new Point(10, 590)));
   }
 
   public tick() : State {
@@ -105,7 +106,7 @@ class PlayState extends State {
       let player_pos = this.asteroid.player.pos;
       this.cam.x = Math.floor(player_pos.x - this.data.width/2);
       this.cam.y = Math.floor(player_pos.y - this.data.height/2);
-      for(let E of this.UI) E.tick();
+      for(let E of this.UI) E.tick(this.player_data);
     }
     return this;
   }
