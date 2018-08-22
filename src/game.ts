@@ -52,30 +52,27 @@ class GameData {
   }
 }
 
-let menu_state : MenuState;
-let navigation_state : NavigationState;
-
 class Game {
   data : GameData;
   state : State;
   constructor(canvas : HTMLCanvasElement) {
     this.data = new GameData(canvas);
-    this.state = new MenuState(this.data);//new NavigationState(this.data);
-    this.state.set_player_data(new PlayerData());
+    this.state = new MenuState(this.data);
   }
 
   // Porco mas funciona o7
   public start() {
     this.data.canvas.addEventListener("click", e => {
       this.state.click = true;
-      for(let E of this.state.UI)
-        if(E instanceof SelectionButton && E.is_inside(this.data.mpos)) {
+      for(let E of this.state.UI) {
+        if((E instanceof SelectionButton || E instanceof LauchButton) && E.is_inside(this.data.mpos)) {
           E.on_click();
           for(let A of this.state.UI)
             if(A != E && A instanceof SelectionButton && A.pressed)
               A.on_click();
 
         }
+      }
     });
     this.loop();
   }
