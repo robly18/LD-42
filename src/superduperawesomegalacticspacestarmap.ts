@@ -13,7 +13,7 @@ class SuperDuperAwesomeGalacticSpaceStarMap {
   private init() {
     for(let i = 0; i < this.width; i++)
       for(let j = 0; j < this.height; j++)
-        matrix[i][j] = null;
+        this.matrix[i][j] = null;
 
     this.generate();
   }
@@ -22,7 +22,7 @@ class SuperDuperAwesomeGalacticSpaceStarMap {
     for(let i = 0; i < this.width; i++)
       for(let j = 0; j < this.height; j++)
         if(rand_int(100) < 30)
-          matrix[i][j] = new Map(30, 30, 25);
+          this.matrix[i][j] = new Map(30, 30, 25);
   }
 
   public dist(p1: Point, p2: Point) {

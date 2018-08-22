@@ -127,6 +127,7 @@ class PlayState extends State {
 }
 
 class NavigationState extends State {
+  click: boolean;
   map: SuperDuperAwesomeGalacticSpaceStarMap;
 
   constructor(data: GameData) {
@@ -135,9 +136,8 @@ class NavigationState extends State {
   }
 
   public tick() {
-    if(this.click) {
-
-    }
+    if(this.click) {}
+    return this;
   }
 
   public render() {

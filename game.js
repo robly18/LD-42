@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1012,6 +1015,53 @@ var PlayState = (function (_super) {
     };
     return PlayState;
 }(State));
+var NavigationState = (function (_super) {
+    __extends(NavigationState, _super);
+    function NavigationState(data) {
+        var _this = _super.call(this, data) || this;
+        _this.map = new SuperDuperAwesomeGalacticSpaceStarMap(25, 19);
+        return _this;
+    }
+    NavigationState.prototype.tick = function () {
+        if (this.click) { }
+        return this;
+    };
+    NavigationState.prototype.render = function () {
+        this.data.ctx.fillStyle = "black";
+        this.data.ctx.clearRect(0, 0, this.data.width, this.data.height);
+    };
+    return NavigationState;
+}(State));
+var EndState = (function (_super) {
+    __extends(EndState, _super);
+    function EndState() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return EndState;
+}(State));
+var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
+    function SuperDuperAwesomeGalacticSpaceStarMap(width, height) {
+        this.width = width;
+        this.height = height;
+        this.init();
+    }
+    SuperDuperAwesomeGalacticSpaceStarMap.prototype.init = function () {
+        for (var i = 0; i < this.width; i++)
+            for (var j = 0; j < this.height; j++)
+                this.matrix[i][j] = null;
+        this.generate();
+    };
+    SuperDuperAwesomeGalacticSpaceStarMap.prototype.generate = function () {
+        for (var i = 0; i < this.width; i++)
+            for (var j = 0; j < this.height; j++)
+                if (rand_int(100) < 30)
+                    this.matrix[i][j] = new Map(30, 30, 25);
+    };
+    SuperDuperAwesomeGalacticSpaceStarMap.prototype.dist = function (p1, p2) {
+        return Math.max(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
+    };
+    return SuperDuperAwesomeGalacticSpaceStarMap;
+}());
 var Tileset = (function () {
     function Tileset(src, tile_width, tile_height) {
         if (tile_height === void 0) { tile_height = tile_width; }
