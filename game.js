@@ -51,6 +51,11 @@ var Asteroid = (function () {
         if (player_data.jetpack) {
             player_data.fuel -= 1 / 16;
         }
+        if (this.map.empty(this.player.pos)) {
+            if (player_data.fuel <= 0)
+                return false;
+            player_data.jetpack = true;
+        }
         this.map.tick(this, player_data);
         for (var i = 0; i < this.entities.length;) {
             var e = this.entities[i];
@@ -79,6 +84,7 @@ var Asteroid = (function () {
                     player_data.construction_parts++;
             }
         }
+        return true;
     };
     Asteroid.prototype.render = function (data, player_data, cam) {
         var mpos_in_space = data.mpos.plus(cam);
@@ -1051,7 +1057,8 @@ var PlayState = (function (_super) {
         this.leftover_t += this.data.dt();
         while (this.leftover_t >= DT) {
             this.leftover_t -= DT;
-            this.asteroid.tick(this.data, this.player_data, this.cam);
+            if (!this.asteroid.tick(this.data, this.player_data, this.cam))
+                return new GameOverState(this.data);
             var player_pos = this.asteroid.player.pos;
             this.cam.x = Math.floor(player_pos.x - this.data.width / 2);
             this.cam.y = Math.floor(player_pos.y - this.data.height / 2);
@@ -1096,6 +1103,8 @@ var NavigationState = (function (_super) {
         if (this.click) {
             this.click = false;
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
+            p.x = Math.min(p.x, 16);
+            p.y = Math.min(p.y, 11);
             var cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
             if (cost <= this.player_data.fuel) {
                 if (p.x == 16 && p.y == 11)
@@ -1206,7 +1215,7 @@ var GameOverState = (function (_super) {
         ctx.fillText("Alas! You have perished.", this.data.width / 2, 50);
         ctx.font = "17px Arial";
         var text = ["Your friends and family will miss you. :(",
-            "Click the screen to go back to the menu)"];
+            "(Click the screen to go back to the menu)"];
         for (var i = 0; i != text.length; i++)
             ctx.fillText(text[i], this.data.width / 2, 100 + 17 * i);
     };

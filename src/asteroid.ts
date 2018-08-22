@@ -14,7 +14,7 @@ class Asteroid {
     this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
   }
 
-  public tick(data : GameData, player_data : PlayerData, cam : Point) {
+  public tick(data : GameData, player_data : PlayerData, cam : Point) : boolean {
     this.lifetime++;
     let center = new Point(this.map.width, this.map.height).times(tile_size/2);
     let field_r = Math.sqrt(this.map.width*this.map.width + this.map.height*this.map.height)*tile_size/2
@@ -40,10 +40,15 @@ class Asteroid {
       } else i++;
     }
 
-    if (player_data.fuel <= 0) player_data.jetpack = false;
+    if (player_data.fuel <= 0)
+      player_data.jetpack = false;
     this.player.floating = player_data.jetpack;
     if (player_data.jetpack) {
       player_data.fuel -= 1/16;
+    }
+    if (this.map.empty(this.player.pos)) {
+      if (player_data.fuel <= 0) return false;
+      player_data.jetpack = true;
     }
 
     this.map.tick(this, player_data);
@@ -73,6 +78,8 @@ class Asteroid {
             )) player_data.construction_parts++;
       }
     }
+
+    return true;
   }
 
   public render(data : GameData, player_data : PlayerData, cam : Point) {
