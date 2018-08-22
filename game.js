@@ -393,8 +393,8 @@ var Map = (function () {
     };
     Map.prototype.render_background = function (data, cam) {
         var img = new Image();
-        img.src = 'assets/background.png';
-        data.ctx.drawImage(img, -100 - cam.x / 10, -100 - cam.y / 10);
+        img.src = 'assets/menu_background.png';
+        data.ctx.drawImage(img, -cam.x / 10, -cam.y / 10);
         var nwx = Math.max(Math.floor(cam.x / tile_size), 0);
         var nwy = Math.max(Math.floor(cam.y / tile_size), 0);
         var sex = Math.min(Math.ceil((cam.x + data.width) / tile_size), this.width - 1);

@@ -75,8 +75,8 @@ class Map {
 
   public render_background(data : GameData, cam : Point) {
     let img = new Image();
-    img.src = 'assets/background.png';
-    data.ctx.drawImage(img, -100 - cam.x/10, -100 - cam.y/10);
+    img.src = 'assets/menu_background.png';
+    data.ctx.drawImage(img, -cam.x/10, -cam.y/10);
 
     let nwx = Math.max(Math.floor(cam.x/tile_size), 0);
     let nwy = Math.max(Math.floor(cam.y/tile_size), 0);

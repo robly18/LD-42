@@ -125,3 +125,25 @@ class PlayState extends State {
     for(let E of this.UI)  E.render(this.data);
   }
 }
+
+class NavigationState extends State {
+  map: SuperDuperAwesomeGalacticSpaceStarMap;
+
+  constructor(data: GameData) {
+    super(data);
+    this.map = new SuperDuperAwesomeGalacticSpaceStarMap(25, 19);
+  }
+
+  public tick() {
+    if(this.click) {
+
+    }
+  }
+
+  public render() {
+    this.data.ctx.fillStyle = "black";
+    this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
+  }
+}
+
+class EndState extends State {}
