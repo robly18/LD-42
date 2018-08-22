@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -224,16 +221,10 @@ var GameData = (function () {
     };
     return GameData;
 }());
-var menu_state;
-var navigation_state;
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
-        menu_state = new MenuState(this.data);
-        navigation_state = new NavigationState(this.data);
-        this.state = new PlayState(this.data);
-        this.state.set_player_data(new PlayerData());
-        this.state.set_map(navigation_state.map.matrix[0][0]);
+        this.state = new MenuState(this.data);
     }
     Game.prototype.start = function () {
         var _this = this;
@@ -931,20 +922,51 @@ var MenuState = (function (_super) {
     __extends(MenuState, _super);
     function MenuState(data) {
         var _this = _super.call(this, data) || this;
-        _this.x = 0;
+        _this.clicked = false;
+        data.canvas.addEventListener("mousedown", function (e) { _this.clicked = true; });
+        data.canvas.addEventListener("keydown", function (e) { _this.clicked = true; });
         return _this;
     }
     MenuState.prototype.tick = function () {
-        this.x += this.data.dt() / 20;
-        this.x %= 800;
-        return this;
+        if (this.clicked) {
+            var nav = new NavigationState(this.data);
+            nav.set_player_data(new PlayerData());
+            return nav;
+        }
+        else
+            return this;
     };
     MenuState.prototype.render = function () {
         var background = new Image();
         background.src = 'assets/menu_background.png';
         var ctx = this.data.ctx;
-        ctx.drawImage(background, this.x, 0);
-        ctx.drawImage(background, this.x - background.width, 0);
+        ctx.drawImage(background, 0, 0);
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.font = "30px Arial";
+        ctx.fillText("Welcome to LD-42 \"Running out of Space\"", this.data.width / 2, 50);
+        ctx.font = "20px Arial";
+        var text = ["Your goal is to return home by hopping from asteroid to asteroid.",
+            "To do this, you need fuel, which you get by electrolyzing Ice using Fuel Factories.",
+            "Factories also need power,",
+            "so you also need to provide them with small amounts of Uranium.",
+            "All of these resources can be mined from the surface of said asteroids, using Mines.",
+            "And carried from these mines to the factories using Conveyor Belts.",
+            "All of these buildings require Construction Materials. Fortunately you",
+            "can also make a Construction Material Factory, which turns stone into CM.",
+            "Those are all the available buildings: Belts, Mines, and Fuel and CM Factories.",
+            "These can be built with the menu, or using the hotkeys B, M, F, C.",
+            "Belts can be rotated using R.",
+            "As you mine, you expend the asteroid you are on, so be careful!",
+            "The more you mine, the less space you have available.",
+            "Furthermore, there are asteroids which collide against yours and wear out its edges.",
+            "If you are stuck, you can press J to use a Jetpack. But beware, as that uses the",
+            "precious fuel you need to return home!",
+            "That should be all. On an asteroid, your goal is to collect as much fuel as possible!",
+            "Once you conclude you can't collect any more, click the Launch button, or L, to move on.",
+            "Good luck, and don't run out of space!"];
+        for (var i = 0; i != text.length; i++)
+            ctx.fillText(text[i], this.data.width / 2, 100 + 20 * i);
     };
     return MenuState;
 }(State));
@@ -995,13 +1017,14 @@ var PlayerData = (function () {
 }());
 var PlayState = (function (_super) {
     __extends(PlayState, _super);
-    function PlayState(data) {
+    function PlayState(data, ns) {
         var _this = _super.call(this, data) || this;
         _this.player_data = new PlayerData();
         _this.map = new Map(30, 30, 25);
         _this.asteroid = new Asteroid(_this.map);
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
+        _this.navigation_state = ns;
         _this.init_UI();
         return _this;
     }
@@ -1034,12 +1057,12 @@ var PlayState = (function (_super) {
             for (var _i = 0, _a = this.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
                 if (E instanceof LauchButton && E.pressed) {
-                    var p = navigation_state.map.cur_pos;
-                    navigation_state.map.matrix[p.x][p.y] = null;
+                    var p = this.navigation_state.map.cur_pos;
+                    this.navigation_state.map.matrix[p.x][p.y] = null;
                     this.player_data.construction_parts = 10;
                     this.player_data.jetpack = false;
-                    navigation_state.set_player_data(this.player_data);
-                    return navigation_state;
+                    this.navigation_state.set_player_data(this.player_data);
+                    return this.navigation_state;
                 }
                 E.tick(this.player_data);
             }
@@ -1074,7 +1097,7 @@ var NavigationState = (function (_super) {
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
             if (!this.map.is_empty(p) && COST_PER_UNIT * this.map.dist(this.map.cur_pos, p) <= this.player_data.fuel) {
                 this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
-                var new_state = new PlayState(this.data);
+                var new_state = new PlayState(this.data, this);
                 new_state.set_map(this.map.matrix[p.x][p.y]);
                 new_state.set_player_data(this.player_data);
                 this.map.cur_pos = p;
@@ -1116,6 +1139,17 @@ var NavigationState = (function (_super) {
     return NavigationState;
 }(State));
 var COST_PER_UNIT = 50;
+var EndState = (function (_super) {
+    __extends(EndState, _super);
+    function EndState() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    EndState.prototype.tick = function () {
+        return this;
+    };
+    EndState.prototype.render = function () { };
+    return EndState;
+}(State));
 var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
     function SuperDuperAwesomeGalacticSpaceStarMap(width, height) {
         this.width = width;
