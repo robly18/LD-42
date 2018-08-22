@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -474,13 +477,11 @@ var Map = (function () {
     Map.prototype.generate = function (req) {
         var queue = [];
         var seed = new Point(rand_int(this.width), rand_int(this.height));
-        var ret = seed;
         for (var k = 0; k < 3; k++) {
             for (var i = 0; i < req[k]; i++) {
                 while (this.ground[seed.x][seed.y])
                     seed = new Point(rand_int(this.width), rand_int(this.height));
                 this.ground[seed.x][seed.y] = new Tile(k, GROUND_MAX_VALUE);
-                ret = seed;
                 var to_fill = [];
                 for (var j = 0; j < 8; j++)
                     to_fill.push([rand_int(3) - 1, rand_int(3) - 1]);
@@ -522,6 +523,9 @@ var Map = (function () {
                 }
             }
         }
+        var ret = seed;
+        while (!this.ground[ret.x][ret.y])
+            ret = new Point(rand_int(this.width), rand_int(this.height));
         return ret;
     };
     Map.prototype.empty = function (p) {
@@ -1095,13 +1099,20 @@ var NavigationState = (function (_super) {
         if (this.click) {
             this.click = false;
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
-            if (!this.map.is_empty(p) && COST_PER_UNIT * this.map.dist(this.map.cur_pos, p) <= this.player_data.fuel) {
-                this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
-                var new_state = new PlayState(this.data, this);
-                new_state.set_map(this.map.matrix[p.x][p.y]);
-                new_state.set_player_data(this.player_data);
-                this.map.cur_pos = p;
-                return new_state;
+            p.x = Math.min(p.x, 16);
+            p.y = Math.min(p.y, 11);
+            var cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
+            if (cost <= this.player_data.fuel) {
+                if (p.x == 16 && p.y == 11)
+                    return new EndState(this.data);
+                if (!this.map.is_empty(p)) {
+                    this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
+                    var new_state = new PlayState(this.data, this);
+                    new_state.set_map(this.map.matrix[p.x][p.y]);
+                    new_state.set_player_data(this.player_data);
+                    this.map.cur_pos = p;
+                    return new_state;
+                }
             }
         }
         return this;
@@ -1139,7 +1150,7 @@ var NavigationState = (function (_super) {
     };
     return NavigationState;
 }(State));
-var COST_PER_UNIT = 50;
+var COST_PER_UNIT = 0;
 var EndState = (function (_super) {
     __extends(EndState, _super);
     function EndState() {
