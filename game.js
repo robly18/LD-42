@@ -328,9 +328,9 @@ var TICKS_PER_MINE = 60;
 var GROUND_MAX_VALUE = 32;
 var CONSTRUCTION_PARTS_RECIPE = [5, 0, 1 / 16];
 var CONSTRUCTION_PARTS_TIME = 100;
-var FUEL_RECIPE = [0, 100, 1];
-var FUEL_TIME = 1000;
-var ASTEROID_VELOCITY = 40 / 1000;
+var FUEL_RECIPE = [0, 1, 1 / 256];
+var FUEL_TIME = 420;
+var ASTEROID_VELOCITY = 400 / 1000;
 var ASTEROID_INTERVAL = 60;
 window.onload = function () {
     itemtileset = new Tileset("assets/items.png", 8, 8);
@@ -629,7 +629,6 @@ var Map = (function () {
             for (var dy = -2; dy <= 2; dy++) {
                 var cc = coords.plus(new Point(dx, dy));
                 if (!this.emptyTile(cc)) {
-                    console.log(">:(");
                     var tile = this.ground[cc.x][cc.y];
                     tile.quantity -= Math.floor((9 - dx * dx - dy * dy) * (-Math.log(Math.random())));
                     if (tile.quantity <= 0)
@@ -1023,8 +1022,13 @@ var NavigationState = (function (_super) {
         return _this;
     }
     NavigationState.prototype.tick = function () {
+<<<<<<< HEAD
         if (this.click) { }
         return this;
+=======
+        if (this.click) {
+        }
+>>>>>>> 2453789e463e131a096d566acc6f3faa6edd9ca7
     };
     NavigationState.prototype.render = function () {
         this.data.ctx.fillStyle = "black";
@@ -1048,14 +1052,22 @@ var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.init = function () {
         for (var i = 0; i < this.width; i++)
             for (var j = 0; j < this.height; j++)
+<<<<<<< HEAD
                 this.matrix[i][j] = null;
+=======
+                matrix[i][j] = null;
+>>>>>>> 2453789e463e131a096d566acc6f3faa6edd9ca7
         this.generate();
     };
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.generate = function () {
         for (var i = 0; i < this.width; i++)
             for (var j = 0; j < this.height; j++)
                 if (rand_int(100) < 30)
+<<<<<<< HEAD
                     this.matrix[i][j] = new Map(30, 30, 25);
+=======
+                    matrix[i][j] = new Map(30, 30, 25);
+>>>>>>> 2453789e463e131a096d566acc6f3faa6edd9ca7
     };
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.dist = function (p1, p2) {
         return Math.max(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
