@@ -15,17 +15,18 @@ abstract class State {
 }
 
 class MenuState extends State {
-  x: number;
+  clicked : boolean;
 
   constructor(data : GameData) {
     super(data);
-    this.x = 0;
+    this.clicked = false;
+    data.canvas.addEventListener("mousedown", e => {this.clicked = true;});
+    data.canvas.addEventListener("keydown", e => {this.clicked = true;});
   }
 
   public tick() : State {
-    this.x += this.data.dt()/20;
-    this.x %= 800;
-    return this;
+    if (this.clicked) return new NavigationState(this.data)
+    else return this;
   }
   
   public render() {
@@ -33,8 +34,33 @@ class MenuState extends State {
     background.src = 'assets/menu_background.png';
 
     let ctx = this.data.ctx;
-    ctx.drawImage(background, this.x, 0); 
-    ctx.drawImage(background, this.x-background.width, 0); 
+    ctx.drawImage(background, 0, 0);
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.font = "30px Arial";
+    ctx.fillText("Welcome to LD-42 \"Running out of Space\"",this.data.width/2,50);
+    ctx.font = "20px Arial";
+    let text = ["Your goal is to return home by hopping from asteroid to asteroid.",
+                "To do this, you need fuel, which you get by electrolyzing Ice using Fuel Factories.",
+                "Factories also need power,",
+                "so you also need to provide them with small amounts of Uranium.",
+                "All of these resources can be mined from the surface of said asteroids, using Mines.",
+                "And carried from these mines to the factories using Conveyor Belts.",
+                "All of these buildings require Construction Materials. Fortunately you",
+                "can also make a Construction Material Factory, which turns stone into CM.",
+                "Those are all the available buildings: Belts, Mines, and Fuel and CM Factories.",
+                "These can be built with the menu, or using the hotkeys B, M, F, C.",
+                "Belts can be rotated using R.",
+                "As you mine, you expend the asteroid you are on, so be careful!",
+                "The more you mine, the less space you have available.",
+                "Furthermore, there are asteroids which collide against yours and wear out its edges.",
+                "If you are stuck, you can press J to use a Jetpack. But beware, as that uses the",
+                "precious fuel you need to return home!",
+                "That should be all. On an asteroid, your goal is to collect as much fuel as possible!",
+                "Once you conclude you can't collect any more, click the Launch button, or L, to move on.",
+                "Good luck, and don't run out of space!"];
+    for (let i = 0; i != text.length; i++)
+      ctx.fillText(text[i],this.data.width/2,100 + 20*i);
   }
 }
 
@@ -199,4 +225,9 @@ class NavigationState extends State {
 }
 
 const COST_PER_UNIT = 10;
-class EndState extends State {}
+class EndState extends State {
+  public tick() : State {
+    return this;
+  }
+  public render() {}
+}

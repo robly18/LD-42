@@ -60,7 +60,7 @@ class Game {
   state : State;
   constructor(canvas : HTMLCanvasElement) {
     this.data = new GameData(canvas);
-    this.state = new NavigationState(this.data);
+    this.state = new MenuState(this.data);//new NavigationState(this.data);
     this.state.set_player_data(new PlayerData());
   }
 
