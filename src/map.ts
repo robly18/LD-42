@@ -39,7 +39,6 @@ class Map {
   surface: { [id : number] : { [id:number]:Prop } };
 
   spawn : Point;
-
   tileset : Tileset;
 
   constructor(width : number, height : number, max_gen: number) {
@@ -47,7 +46,7 @@ class Map {
 
     this.width = width;
     this.height = height;
-    this.max_gen= max_gen;
+    this.max_gen = max_gen;
 
     this.ground = [];
     this.surface = {};
@@ -159,14 +158,12 @@ class Map {
   public generate(req: [number, number, number]) : Point {
     let queue: [Point, number][] = [];
     let seed: Point = new Point(rand_int(this.width), rand_int(this.height));
-    let ret: Point = seed;
 
     for(let k = 0; k < 3; k++) {
       for(let i = 0; i < req[k]; i++) {
         while(this.ground[seed.x][seed.y])
           seed = new Point(rand_int(this.width), rand_int(this.height));
         this.ground[seed.x][seed.y] = new Tile(k, GROUND_MAX_VALUE);
-        ret = seed;
 
         let to_fill: number[][] = [];
         for(let j = 0; j < 8; j++)
@@ -209,6 +206,10 @@ class Map {
         }
       }
     }
+
+    let ret = seed;
+    while(!this.ground[ret.x][ret.y])
+      ret = new Point(rand_int(this.width), rand_int(this.height));
     return ret;
   }
 

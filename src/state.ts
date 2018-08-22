@@ -44,7 +44,7 @@ class MenuState extends State {
     ctx.textAlign = "center";
     ctx.font = "30px Arial";
     ctx.fillText("Welcome to LD-42 \"Running out of Space\"",this.data.width/2,50);
-    ctx.font = "20px Arial";
+    ctx.font = "17px Arial";
     let text = ["Your goal is to return home by hopping from asteroid to asteroid.",
                 "To do this, you need fuel, which you get by electrolyzing Ice using Fuel Factories.",
                 "Factories also need power,",
@@ -207,15 +207,19 @@ class NavigationState extends State {
     if(this.click) {
       this.click = false;
       let p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
-      if(!this.map.is_empty(p) && COST_PER_UNIT*this.map.dist(this.map.cur_pos, p) <= this.player_data.fuel) {
-        this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
-        //if(p.x == 16 && p.y == 11) return new VictoryState(this.data);
-        let new_state = new PlayState(this.data, this);
-        new_state.set_map(this.map.matrix[p.x][p.y] as Map);
-        new_state.set_player_data(this.player_data);
 
-        this.map.cur_pos = p;
-        return new_state;
+      let cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
+      if(cost <= this.player_data.fuel) {
+        if(p.x == 16 && p.y == 11) return new EndState(this.data);
+        if(!this.map.is_empty(p)) {
+          this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
+          let new_state = new PlayState(this.data, this);
+          new_state.set_map(this.map.matrix[p.x][p.y] as Map);
+          new_state.set_player_data(this.player_data);
+
+          this.map.cur_pos = p;
+          return new_state;
+        }
       }
     }
     return this;
@@ -258,7 +262,7 @@ class NavigationState extends State {
   }
 }
 
-const COST_PER_UNIT = 50;
+const COST_PER_UNIT = 100;
 class EndState extends State {
   public tick() : State {
     return this;
