@@ -158,7 +158,7 @@ class PlayState extends State {
     
     while(this.leftover_t >= DT) {
       this.leftover_t -= DT;
-      this.asteroid.tick(this.data, this.player_data, this.cam);
+      if (!this.asteroid.tick(this.data, this.player_data, this.cam)) return new GameOverState(this.data);
 
       let player_pos = this.asteroid.player.pos;
       this.cam.x = Math.floor(player_pos.x - this.data.width/2);
@@ -333,7 +333,7 @@ class GameOverState extends State {
     ctx.fillText("Alas! You have perished.",this.data.width/2,50);
     ctx.font = "17px Arial";
     let text = ["Your friends and family will miss you. :(",
-                "Click the screen to go back to the menu)"];
+                "(Click the screen to go back to the menu)"];
     for (let i = 0; i != text.length; i++)
       ctx.fillText(text[i],this.data.width/2,100 + 17*i);
   }
