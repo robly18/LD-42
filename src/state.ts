@@ -9,6 +9,7 @@ abstract class State {
     this.click = false;
   }
 
+  public set_player_data(player_data : PlayerData) {}
   public tick() : State {return this;}
   public render() {}
 }
@@ -97,6 +98,10 @@ class PlayState extends State {
     this.init_UI();
   }
 
+  public set_player_data(player_data: PlayerData) {
+    this.player_data = player_data;
+  }
+
   public set_map(map : Map) {
     this.map = map;
     this.asteroid = new Asteroid(map);
@@ -138,6 +143,7 @@ class PlayState extends State {
 
 class NavigationState extends State {
   click: boolean;
+  player_data : PlayerData;
   UI: UIElement[];
   map: SuperDuperAwesomeGalacticSpaceStarMap;
 
@@ -147,14 +153,19 @@ class NavigationState extends State {
     this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
   }
 
+  public set_player_data(player_data: PlayerData) {
+    this.player_data = player_data;
+  }
+
   public tick() : State {
     if(this.click) {
       this.click = false;
       let p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
-      console.log(p.x);
-      if(!this.map.is_empty(p)) {
+      if(!this.map.is_empty(p) && COST_PER_UNIT*this.map.dist(this.map.cur_pos, p) <= this.player_data.fuel) {
+        this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
         let new_state = new PlayState(this.data);
         new_state.set_map(this.map.matrix[p.x][p.y] as Map);
+        new_state.set_player_data(this.player_data);
         return new_state;
       }
     }
@@ -187,4 +198,5 @@ class NavigationState extends State {
   }
 }
 
+const COST_PER_UNIT = 10;
 class EndState extends State {}

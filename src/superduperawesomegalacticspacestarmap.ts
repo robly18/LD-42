@@ -1,11 +1,13 @@
 class SuperDuperAwesomeGalacticSpaceStarMap {
   width: number;
   height: number;
+  cur_pos : Point;
   matrix: (Map | null)[][];
 
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
+    this.cur_pos = new Point(0,0);
     this.matrix = [];
 
     this.init();
@@ -22,6 +24,7 @@ class SuperDuperAwesomeGalacticSpaceStarMap {
   }
 
   public generate() {
+    this.matrix[0][0] = new Map(30, 30,25);
     for(let i = 0; i < this.width; i++)
       for(let j = 0; j < this.height; j++)
         if(rand_int(100) < 20)

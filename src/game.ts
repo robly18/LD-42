@@ -52,12 +52,16 @@ class GameData {
   }
 }
 
+let menu_state : MenuState;
+let navigation_state : NavigationState;
+
 class Game {
   data : GameData;
   state : State;
   constructor(canvas : HTMLCanvasElement) {
     this.data = new GameData(canvas);
     this.state = new NavigationState(this.data);
+    this.state.set_player_data(new PlayerData());
   }
 
   // Porco mas funciona o7

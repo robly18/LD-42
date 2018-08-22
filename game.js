@@ -224,10 +224,13 @@ var GameData = (function () {
     };
     return GameData;
 }());
+var menu_state;
+var navigation_state;
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
         this.state = new NavigationState(this.data);
+        this.state.set_player_data(new PlayerData());
     }
     Game.prototype.start = function () {
         var _this = this;
@@ -900,6 +903,7 @@ var State = (function () {
         this.UI = [];
         this.click = false;
     }
+    State.prototype.set_player_data = function (player_data) { };
     State.prototype.tick = function () { return this; };
     State.prototype.render = function () { };
     return State;
@@ -982,6 +986,9 @@ var PlayState = (function (_super) {
         _this.init_UI();
         return _this;
     }
+    PlayState.prototype.set_player_data = function (player_data) {
+        this.player_data = player_data;
+    };
     PlayState.prototype.set_map = function (map) {
         this.map = map;
         this.asteroid = new Asteroid(map);
@@ -1030,14 +1037,18 @@ var NavigationState = (function (_super) {
         _this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
         return _this;
     }
+    NavigationState.prototype.set_player_data = function (player_data) {
+        this.player_data = player_data;
+    };
     NavigationState.prototype.tick = function () {
         if (this.click) {
             this.click = false;
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
-            console.log(p.x);
-            if (!this.map.is_empty(p)) {
+            if (!this.map.is_empty(p) && COST_PER_UNIT * this.map.dist(this.map.cur_pos, p) <= this.player_data.fuel) {
+                this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
                 var new_state = new PlayState(this.data);
                 new_state.set_map(this.map.matrix[p.x][p.y]);
+                new_state.set_player_data(this.player_data);
                 return new_state;
             }
         }
@@ -1065,6 +1076,7 @@ var NavigationState = (function (_super) {
     };
     return NavigationState;
 }(State));
+var COST_PER_UNIT = 10;
 var EndState = (function (_super) {
     __extends(EndState, _super);
     function EndState() {
@@ -1076,6 +1088,7 @@ var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
     function SuperDuperAwesomeGalacticSpaceStarMap(width, height) {
         this.width = width;
         this.height = height;
+        this.cur_pos = new Point(0, 0);
         this.matrix = [];
         this.init();
     }
@@ -1088,6 +1101,7 @@ var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
         this.generate();
     };
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.generate = function () {
+        this.matrix[0][0] = new Map(30, 30, 25);
         for (var i = 0; i < this.width; i++)
             for (var j = 0; j < this.height; j++)
                 if (rand_int(100) < 20)
