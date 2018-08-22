@@ -304,7 +304,7 @@ class Map {
       if (!this.emptyTile(cc)) {
         console.log(">:(");
         let tile = this.ground[cc.x][cc.y] as Tile;
-        tile.quantity -= Math.floor((9 - dx*dx - dy*dy)*(1 + Math.random()));
+        tile.quantity -= Math.floor((9 - dx*dx - dy*dy)*(-Math.log(Math.random())));
         if (tile.quantity <= 0) asteroid.deleteTileAt(cc);
       }
     }
