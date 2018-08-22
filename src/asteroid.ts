@@ -43,7 +43,7 @@ class Asteroid {
     if (player_data.fuel <= 0) player_data.jetpack = false;
     this.player.floating = player_data.jetpack;
     if (player_data.jetpack) {
-      player_data.fuel--;
+      player_data.fuel -= 1/16;
     }
 
     this.map.tick(this, player_data);
