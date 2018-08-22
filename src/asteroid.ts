@@ -9,7 +9,7 @@ class Asteroid {
     this.map = map;
     this.entities = [];
     this.asteroids = [];
-    this.player = new Entity(new Point(100,100), false);
+    this.player = new Entity(map.spawn.times(tile_size).plus(new Point(1,1).times(tile_size/2)), false);
     this.player.movement = new PlayerMovementComponent();
     this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
   }

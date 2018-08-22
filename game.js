@@ -14,7 +14,7 @@ var Asteroid = (function () {
         this.map = map;
         this.entities = [];
         this.asteroids = [];
-        this.player = new Entity(new Point(100, 100), false);
+        this.player = new Entity(map.spawn.times(tile_size).plus(new Point(1, 1).times(tile_size / 2)), false);
         this.player.movement = new PlayerMovementComponent();
         this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
     }
@@ -383,7 +383,7 @@ var Map = (function () {
                 this.ground[i][j] = null;
             }
         }
-        this.generate([100, 0, 30]);
+        this.spawn = this.generate([100, 0, 30]);
     };
     Map.prototype.tick = function (asteroid, player_data) {
         var surface = this.surface;
@@ -524,6 +524,7 @@ var Map = (function () {
                 }
             }
         }
+        console.log(ret);
         return ret;
     };
     Map.prototype.empty = function (p) {
