@@ -645,11 +645,11 @@ var Map = (function () {
                     if (i_1 in this.surface && j in this.surface[i_1])
                         likelihood *= 2;
                     total += likelihood;
-                    likelihoods.push([total, new Point(i_1, j).times(tile_size)]);
+                    likelihoods.push([total, new Point(i_1 + Math.random(), j + Math.random()).times(tile_size)]);
                 }
             }
         }
-        likelihoods.push([total + 1, new Point(Math.random() * this.width, Math.random() * this.height)]);
+        likelihoods.push([total * 0.01 + 1, new Point(Math.random() * this.width, Math.random() * this.height)]);
         var p = Math.random() * total;
         var i = 0;
         while (likelihoods[i][0] <= p)
