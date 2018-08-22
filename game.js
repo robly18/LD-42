@@ -474,13 +474,11 @@ var Map = (function () {
     Map.prototype.generate = function (req) {
         var queue = [];
         var seed = new Point(rand_int(this.width), rand_int(this.height));
-        var ret = seed;
         for (var k = 0; k < 3; k++) {
             for (var i = 0; i < req[k]; i++) {
                 while (this.ground[seed.x][seed.y])
                     seed = new Point(rand_int(this.width), rand_int(this.height));
                 this.ground[seed.x][seed.y] = new Tile(k, GROUND_MAX_VALUE);
-                ret = seed;
                 var to_fill = [];
                 for (var j = 0; j < 8; j++)
                     to_fill.push([rand_int(3) - 1, rand_int(3) - 1]);
@@ -522,6 +520,9 @@ var Map = (function () {
                 }
             }
         }
+        var ret = seed;
+        while (!this.ground[ret.x][ret.y])
+            ret = new Point(rand_int(this.width), rand_int(this.height));
         return ret;
     };
     Map.prototype.empty = function (p) {
@@ -1095,13 +1096,18 @@ var NavigationState = (function (_super) {
         if (this.click) {
             this.click = false;
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
-            if (!this.map.is_empty(p) && COST_PER_UNIT * this.map.dist(this.map.cur_pos, p) <= this.player_data.fuel) {
-                this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
-                var new_state = new PlayState(this.data, this);
-                new_state.set_map(this.map.matrix[p.x][p.y]);
-                new_state.set_player_data(this.player_data);
-                this.map.cur_pos = p;
-                return new_state;
+            var cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
+            if (cost <= this.player_data.fuel) {
+                if (p.x == 16 && p.y == 11)
+                    return new EndState(this.data);
+                if (!this.map.is_empty(p)) {
+                    this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
+                    var new_state = new PlayState(this.data, this);
+                    new_state.set_map(this.map.matrix[p.x][p.y]);
+                    new_state.set_player_data(this.player_data);
+                    this.map.cur_pos = p;
+                    return new_state;
+                }
             }
         }
         return this;
@@ -1139,17 +1145,72 @@ var NavigationState = (function (_super) {
     };
     return NavigationState;
 }(State));
-var COST_PER_UNIT = 50;
+var COST_PER_UNIT = 100;
 var EndState = (function (_super) {
     __extends(EndState, _super);
-    function EndState() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function EndState(data) {
+        var _this = _super.call(this, data) || this;
+        _this.clicked = false;
+        data.canvas.addEventListener("mousedown", function (e) { _this.clicked = true; });
+        data.canvas.addEventListener("keydown", function (e) { _this.clicked = true; });
+        return _this;
     }
     EndState.prototype.tick = function () {
-        return this;
+        if (this.clicked) {
+            return new MenuState(this.data);
+        }
+        else
+            return this;
     };
-    EndState.prototype.render = function () { };
+    EndState.prototype.render = function () {
+        var background = new Image();
+        background.src = 'assets/menu_background.png';
+        var ctx = this.data.ctx;
+        ctx.drawImage(background, 0, 0);
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.font = "30px Arial";
+        ctx.fillText("Congratulations! You have won.", this.data.width / 2, 50);
+        ctx.font = "17px Arial";
+        var text = ["You have returned home to your friends and family.",
+            "Rejoice! (And click the screen to go back to the menu)"];
+        for (var i = 0; i != text.length; i++)
+            ctx.fillText(text[i], this.data.width / 2, 100 + 17 * i);
+    };
     return EndState;
+}(State));
+var GameOverState = (function (_super) {
+    __extends(GameOverState, _super);
+    function GameOverState(data) {
+        var _this = _super.call(this, data) || this;
+        _this.clicked = false;
+        data.canvas.addEventListener("mousedown", function (e) { _this.clicked = true; });
+        data.canvas.addEventListener("keydown", function (e) { _this.clicked = true; });
+        return _this;
+    }
+    GameOverState.prototype.tick = function () {
+        if (this.clicked) {
+            return new MenuState(this.data);
+        }
+        else
+            return this;
+    };
+    GameOverState.prototype.render = function () {
+        var background = new Image();
+        background.src = 'assets/menu_background.png';
+        var ctx = this.data.ctx;
+        ctx.drawImage(background, 0, 0);
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.font = "30px Arial";
+        ctx.fillText("Alas! You have perished.", this.data.width / 2, 50);
+        ctx.font = "17px Arial";
+        var text = ["Your friends and family will miss you. :(",
+            "Click the screen to go back to the menu)"];
+        for (var i = 0; i != text.length; i++)
+            ctx.fillText(text[i], this.data.width / 2, 100 + 17 * i);
+    };
+    return GameOverState;
 }(State));
 var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
     function SuperDuperAwesomeGalacticSpaceStarMap(width, height) {

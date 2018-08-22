@@ -264,8 +264,73 @@ class NavigationState extends State {
 
 const COST_PER_UNIT = 100;
 class EndState extends State {
-  public tick() : State {
-    return this;
+  clicked : boolean;
+
+  constructor(data : GameData) {
+    super(data);
+    this.clicked = false;
+    data.canvas.addEventListener("mousedown", e => {this.clicked = true;});
+    data.canvas.addEventListener("keydown", e => {this.clicked = true;});
   }
-  public render() {}
+
+  public tick() : State {
+    if (this.clicked) {
+      return new MenuState(this.data);
+    } 
+    else return this;
+  }
+  
+  public render() {
+    let background = new Image();
+    background.src = 'assets/menu_background.png';
+
+    let ctx = this.data.ctx;
+    ctx.drawImage(background, 0, 0);
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.font = "30px Arial";
+    ctx.fillText("Congratulations! You have won.",this.data.width/2,50);
+    ctx.font = "17px Arial";
+    let text = ["You have returned home to your friends and family.",
+                "Rejoice! (And click the screen to go back to the menu)"];
+    for (let i = 0; i != text.length; i++)
+      ctx.fillText(text[i],this.data.width/2,100 + 17*i);
+  }
 }
+
+
+class GameOverState extends State {
+  clicked : boolean;
+
+  constructor(data : GameData) {
+    super(data);
+    this.clicked = false;
+    data.canvas.addEventListener("mousedown", e => {this.clicked = true;});
+    data.canvas.addEventListener("keydown", e => {this.clicked = true;});
+  }
+
+  public tick() : State {
+    if (this.clicked) {
+      return new MenuState(this.data);
+    } 
+    else return this;
+  }
+  
+  public render() {
+    let background = new Image();
+    background.src = 'assets/menu_background.png';
+
+    let ctx = this.data.ctx;
+    ctx.drawImage(background, 0, 0);
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.font = "30px Arial";
+    ctx.fillText("Alas! You have perished.",this.data.width/2,50);
+    ctx.font = "17px Arial";
+    let text = ["Your friends and family will miss you. :(",
+                "Click the screen to go back to the menu)"];
+    for (let i = 0; i != text.length; i++)
+      ctx.fillText(text[i],this.data.width/2,100 + 17*i);
+  }
+}
+
