@@ -220,10 +220,8 @@ class NavigationState extends State {
     let cost = this.map.dist(this.map.cur_pos, p) * COST_PER_UNIT;
     if(cost > this.player_data.fuel) this.data.ctx.fillStyle = 'red';
     this.data.ctx.font = "13px Arial";
+    this.data.ctx.textAlign = "right";
     this.data.ctx.fillText("Fuel: " + cost, this.data.mpos.x, this.data.mpos.y);
-
-
-
   }
 }
 

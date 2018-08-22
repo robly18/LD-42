@@ -166,6 +166,7 @@ class Map {
         while(this.ground[seed.x][seed.y])
           seed = new Point(rand_int(this.width), rand_int(this.height));
         this.ground[seed.x][seed.y] = new Tile(k, GROUND_MAX_VALUE);
+        ret = seed;
 
         let to_fill: number[][] = [];
         for(let j = 0; j < 8; j++)
@@ -208,7 +209,6 @@ class Map {
         }
       }
     }
-    console.log(ret);
     return ret;
   }
 

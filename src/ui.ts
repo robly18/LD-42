@@ -113,6 +113,7 @@ class MineralCounter implements UIElement {
   public render(data: GameData) {
     data.ctx.fillStyle = 'white';
     data.ctx.font="13px Arial";
+    data.ctx.textAlign = "left";
     data.ctx.fillText("CP: " + this.construction_parts, this.screen_pos.x, this.screen_pos.y);
   }
 
@@ -140,6 +141,7 @@ class FuelInfo implements UIElement {
   public render(data: GameData) {
     data.ctx.fillStyle = 'white';
     data.ctx.font="13px Arial";
+    data.ctx.textAlign = "left";
     data.ctx.fillText("Fuel: " + Math.floor(this.fuel), this.screen_pos.x, this.screen_pos.y);
   }
 
