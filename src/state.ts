@@ -44,7 +44,7 @@ class MenuState extends State {
     ctx.textAlign = "center";
     ctx.font = "30px Arial";
     ctx.fillText("Welcome to LD-42 \"Running out of Space\"",this.data.width/2,50);
-    ctx.font = "20px Arial";
+    ctx.font = "17px Arial";
     let text = ["Your goal is to return home by hopping from asteroid to asteroid.",
                 "To do this, you need fuel, which you get by electrolyzing Ice using Fuel Factories.",
                 "Factories also need power,",
@@ -62,10 +62,10 @@ class MenuState extends State {
                 "If you are stuck, you can press J to use a Jetpack. But beware, as that uses the",
                 "precious fuel you need to return home!",
                 "That should be all. On an asteroid, your goal is to collect as much fuel as possible!",
-                "Once you conclude you can't collect any more, click the Launch button, or L, to move on.",
+                "Once you conclude you can't collect any more, click the Launch button to move on.",
                 "Good luck, and don't run out of space!"];
     for (let i = 0; i != text.length; i++)
-      ctx.fillText(text[i],this.data.width/2,100 + 20*i);
+      ctx.fillText(text[i],this.data.width/2,100 + 17*i);
   }
 }
 
