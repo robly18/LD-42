@@ -38,6 +38,8 @@ class Map {
   ground:  (Tile | null)[][];
   surface: { [id : number] : { [id:number]:Prop } };
 
+  spawn : Point;
+
   tileset : Tileset;
 
   constructor(width : number, height : number, max_gen: number) {
@@ -60,7 +62,7 @@ class Map {
       }
     }
 
-    this.generate([100,0,30]);
+    this.spawn = this.generate([100,0,30]);
   }
 
   public tick(asteroid : Asteroid, player_data : PlayerData) {
@@ -154,7 +156,7 @@ class Map {
     }
   }
 
-  public generate(req: [number, number, number]) {
+  public generate(req: [number, number, number]) : Point {
     let queue: [Point, number][] = [];
     let seed: Point = new Point(rand_int(this.width), rand_int(this.height));
     let ret: Point = seed;
@@ -206,6 +208,7 @@ class Map {
         }
       }
     }
+    console.log(ret);
     return ret;
   }
 
