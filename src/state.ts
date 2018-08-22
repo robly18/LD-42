@@ -208,6 +208,11 @@ class NavigationState extends State {
       this.click = false;
       let p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
 
+      //ez bug fix
+      //much wow
+      p.x = Math.min(p.x, 16);
+      p.y = Math.min(p.y, 11);
+
       let cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
       if(cost <= this.player_data.fuel) {
         if(p.x == 16 && p.y == 11) return new EndState(this.data);
