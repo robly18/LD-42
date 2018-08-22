@@ -1,9 +1,12 @@
 abstract class State {
+  click: boolean;
   data : GameData;
   UI : UIElement[];
 	
   constructor(data : GameData) {
     this.data = data;
+    this.UI = [];
+    this.click = false;
   }
 
   public tick() : State {return this;}
@@ -75,6 +78,7 @@ class PlayerData {
 }
 
 class PlayState extends State {
+  map: Map;
   player_data : PlayerData;
   asteroid : Asteroid;
   cam : Point;
@@ -85,11 +89,17 @@ class PlayState extends State {
   constructor(data : GameData) {
     super(data);
     this.player_data = new PlayerData();
-    this.asteroid = new Asteroid(new Map(30,30,25));
+    this.map = new Map(30, 30, 25);
+    this.asteroid = new Asteroid(this.map);
     this.cam = new Point(0,0);
     this.leftover_t = 0;
 
     this.init_UI();
+  }
+
+  public set_map(map : Map) {
+    this.map = map;
+    this.asteroid = new Asteroid(map);
   }
 
   public init_UI() {
@@ -128,21 +138,52 @@ class PlayState extends State {
 
 class NavigationState extends State {
   click: boolean;
+  UI: UIElement[];
   map: SuperDuperAwesomeGalacticSpaceStarMap;
 
   constructor(data: GameData) {
     super(data);
-    this.map = new SuperDuperAwesomeGalacticSpaceStarMap(25, 19);
+    this.UI = [];
+    this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
   }
 
-  public tick() {
-    if(this.click) {}
+  public tick() : State {
+    if(this.click) {
+      this.click = false;
+      let p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
+      console.log(p.x);
+      if(!this.map.is_empty(p)) {
+        let new_state = new PlayState(this.data);
+        new_state.set_map(this.map.matrix[p.x][p.y] as Map);
+        return new_state;
+      }
+    }
     return this;
   }
 
   public render() {
-    this.data.ctx.fillStyle = "black";
-    this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
+    let img = new Image();
+    img.src = 'assets/menu_background.png';
+    this.data.ctx.drawImage(img, 0, 0);
+
+    let width = Math.floor(800 / this.map.width)
+    let height = Math.floor(600 / this.map.height)
+    this.data.ctx.fillStyle = "white";
+    for(let i = 0; i < this.map.width; i++)
+      this.data.ctx.fillRect(i*width, 0, 1, 600);
+    this.data.ctx.fillRect(799,0, 1, 600)
+
+    for(let i = 0; i < this.map.height; i++)
+      this.data.ctx.fillRect(0, i*height, 800, 1);
+    this.data.ctx.fillRect(0, 599, 800, 1)
+
+    let ast = new Image();
+    ast.src = 'assets/asteroid.png';
+    for(let i = 0; i < this.map.width; i++)
+      for(let j = 0; j < this.map.height; j++)
+        if(!this.map.is_empty(new Point(i,j)))
+          this.data.ctx.drawImage(ast, i*width, j*height);
+
   }
 }
 

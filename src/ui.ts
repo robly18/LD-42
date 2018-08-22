@@ -103,7 +103,7 @@ class FuelInfo implements UIElement {
   public render(data: GameData) {
     data.ctx.fillStyle = 'white';
     data.ctx.font="13px Arial";
-    data.ctx.fillText("Fuel: " + this.fuel, this.screen_pos.x, this.screen_pos.y);
+    data.ctx.fillText("Fuel: " + Math.floor(this.fuel), this.screen_pos.x, this.screen_pos.y);
   }
 
   public on_click(data: GameData) {}

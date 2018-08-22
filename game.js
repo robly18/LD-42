@@ -224,11 +224,12 @@ var GameData = (function () {
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
-        this.state = new PlayState(this.data);
+        this.state = new NavigationState(this.data);
     }
     Game.prototype.start = function () {
         var _this = this;
         this.data.canvas.addEventListener("click", function (e) {
+            _this.state.click = true;
             for (var _i = 0, _a = _this.state.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
                 if (E instanceof SelectionButton && E.is_inside(_this.data.mpos)) {
@@ -379,7 +380,7 @@ var Map = (function () {
                 this.ground[i][j] = null;
             }
         }
-        this.generate([100, 0, 20]);
+        this.generate([100, 0, 30]);
     };
     Map.prototype.tick = function (asteroid, player_data) {
         var surface = this.surface;
@@ -907,6 +908,8 @@ var Belt = (function () {
 var State = (function () {
     function State(data) {
         this.data = data;
+        this.UI = [];
+        this.click = false;
     }
     State.prototype.tick = function () { return this; };
     State.prototype.render = function () { };
@@ -983,12 +986,17 @@ var PlayState = (function (_super) {
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
         _this.player_data = new PlayerData();
-        _this.asteroid = new Asteroid(new Map(30, 30, 25));
+        _this.map = new Map(30, 30, 25);
+        _this.asteroid = new Asteroid(_this.map);
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
         _this.init_UI();
         return _this;
     }
+    PlayState.prototype.set_map = function (map) {
+        this.map = map;
+        this.asteroid = new Asteroid(map);
+    };
     PlayState.prototype.init_UI = function () {
         this.UI = [];
         var buttons_tileset = new Tileset('assets/test_button.png', 32);
@@ -1029,16 +1037,42 @@ var NavigationState = (function (_super) {
     __extends(NavigationState, _super);
     function NavigationState(data) {
         var _this = _super.call(this, data) || this;
-        _this.map = new SuperDuperAwesomeGalacticSpaceStarMap(25, 19);
+        _this.UI = [];
+        _this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
         return _this;
     }
     NavigationState.prototype.tick = function () {
-        if (this.click) { }
+        if (this.click) {
+            this.click = false;
+            var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
+            console.log(p.x);
+            if (!this.map.is_empty(p)) {
+                var new_state = new PlayState(this.data);
+                new_state.set_map(this.map.matrix[p.x][p.y]);
+                return new_state;
+            }
+        }
         return this;
     };
     NavigationState.prototype.render = function () {
-        this.data.ctx.fillStyle = "black";
-        this.data.ctx.clearRect(0, 0, this.data.width, this.data.height);
+        var img = new Image();
+        img.src = 'assets/menu_background.png';
+        this.data.ctx.drawImage(img, 0, 0);
+        var width = Math.floor(800 / this.map.width);
+        var height = Math.floor(600 / this.map.height);
+        this.data.ctx.fillStyle = "white";
+        for (var i = 0; i < this.map.width; i++)
+            this.data.ctx.fillRect(i * width, 0, 1, 600);
+        this.data.ctx.fillRect(799, 0, 1, 600);
+        for (var i = 0; i < this.map.height; i++)
+            this.data.ctx.fillRect(0, i * height, 800, 1);
+        this.data.ctx.fillRect(0, 599, 800, 1);
+        var ast = new Image();
+        ast.src = 'assets/asteroid.png';
+        for (var i = 0; i < this.map.width; i++)
+            for (var j = 0; j < this.map.height; j++)
+                if (!this.map.is_empty(new Point(i, j)))
+                    this.data.ctx.drawImage(ast, i * width, j * height);
     };
     return NavigationState;
 }(State));
@@ -1053,19 +1087,25 @@ var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
     function SuperDuperAwesomeGalacticSpaceStarMap(width, height) {
         this.width = width;
         this.height = height;
+        this.matrix = [];
         this.init();
     }
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.init = function () {
-        for (var i = 0; i < this.width; i++)
+        for (var i = 0; i < this.width; i++) {
+            this.matrix[i] = [];
             for (var j = 0; j < this.height; j++)
                 this.matrix[i][j] = null;
+        }
         this.generate();
     };
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.generate = function () {
         for (var i = 0; i < this.width; i++)
             for (var j = 0; j < this.height; j++)
-                if (rand_int(100) < 30)
+                if (rand_int(100) < 20)
                     this.matrix[i][j] = new Map(30, 30, 25);
+    };
+    SuperDuperAwesomeGalacticSpaceStarMap.prototype.is_empty = function (p) {
+        return this.matrix[p.x][p.y] == null;
     };
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.dist = function (p1, p2) {
         return Math.max(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
@@ -1150,7 +1190,7 @@ var FuelInfo = (function () {
     FuelInfo.prototype.render = function (data) {
         data.ctx.fillStyle = 'white';
         data.ctx.font = "13px Arial";
-        data.ctx.fillText("Fuel: " + this.fuel, this.screen_pos.x, this.screen_pos.y);
+        data.ctx.fillText("Fuel: " + Math.floor(this.fuel), this.screen_pos.x, this.screen_pos.y);
     };
     FuelInfo.prototype.on_click = function (data) { };
     return FuelInfo;
