@@ -231,9 +231,14 @@ var Game = (function () {
         this.data.canvas.addEventListener("click", function (e) {
             for (var _i = 0, _a = _this.state.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
-                if (_this.data.mpos.x >= E.screen_pos.x && _this.data.mpos.x <= E.screen_pos.x + E.width)
-                    if (_this.data.mpos.y >= E.screen_pos.y && _this.data.mpos.y <= E.screen_pos.y + E.height)
-                        E.on_click(_this.data);
+                if (E instanceof SelectionButton && E.is_inside(_this.data.mpos)) {
+                    E.on_click();
+                    for (var _b = 0, _c = _this.state.UI; _b < _c.length; _b++) {
+                        var A = _c[_b];
+                        if (A != E && A instanceof SelectionButton && A.pressed)
+                            A.on_click();
+                    }
+                }
             }
         });
         this.loop();
@@ -1043,10 +1048,15 @@ var SelectionButton = (function () {
         if (this.pressed)
             player_data.selected_building = this.switch_to;
     };
-    SelectionButton.prototype.on_click = function (data) {
-        this.toggle();
+    SelectionButton.prototype.is_inside = function (p) {
+        if (p.x >= this.screen_pos.x && p.x <= this.screen_pos.x + this.width)
+            if (p.y >= this.screen_pos.y && p.y <= this.screen_pos.y + this.height)
+                return true;
+        return false;
     };
-    SelectionButton.prototype.toggle = function () { this.pressed = !this.pressed; };
+    SelectionButton.prototype.on_click = function () {
+        this.pressed = !this.pressed;
+    };
     return SelectionButton;
 }());
 var MineralCounter = (function () {
