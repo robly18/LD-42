@@ -4,11 +4,15 @@ interface UIElement {
   screen_pos: Point;
 
   render(data: GameData) : void;
-  on_click(data: GameData) : void;
   tick(player_data: PlayerData) : void;
 }
 
-class SelectionButton implements UIElement {
+interface Clickable {
+  on_click(data: GameData) : void;
+  is_inside(point: Point) : boolean;
+}
+
+class SelectionButton implements UIElement, Clickable {
   width: number;
   height: number;
   pressed : boolean;
@@ -39,11 +43,16 @@ class SelectionButton implements UIElement {
     if(this.pressed) player_data.selected_building = this.switch_to;
   }
 
-  public on_click(data: GameData) {
-    this.toggle();
+  public is_inside(p: Point) {
+    if(p.x >= this.screen_pos.x && p.x <= this.screen_pos.x + this.width)
+      if(p.y >= this.screen_pos.y && p.y <= this.screen_pos.y + this.height)
+        return true;
+    return false;
   }
 
-  private toggle() { this.pressed = !this.pressed; }
+  public on_click() {
+    this.pressed = !this.pressed;
+  }
 }
 
 class MineralCounter implements UIElement {

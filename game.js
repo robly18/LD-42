@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -17,18 +20,30 @@ var Asteroid = (function () {
         this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
     }
     Asteroid.prototype.tick = function (data, player_data, cam) {
-        this.map.tick(this);
-        for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
-            var e = _a[_i];
-            e.tick(data, this);
+        if (player_data.fuel <= 0)
+            player_data.jetpack = false;
+        this.player.floating = player_data.jetpack;
+        if (player_data.jetpack) {
+            player_data.fuel--;
+        }
+        this.map.tick(this, player_data);
+        for (var i = 0; i < this.entities.length;) {
+            var e = this.entities[i];
+            var stay = e.tick(data, this);
+            if (stay)
+                i++;
+            else {
+                this.entities[i] = this.entities[this.entities.length - 1];
+                this.entities.length--;
+            }
         }
         this.player.tick(data, this);
-        if (data.mouse[0] && player_data.building_materials > 0) {
+        if (data.mouse[0] && player_data.construction_parts > 0) {
             var mpos_in_space = data.mpos.plus(cam);
             var delta = mpos_in_space.minus(this.player.pos);
             if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
                 if (this.map.build(data, mpos_in_space, player_data))
-                    player_data.building_materials--;
+                    player_data.construction_parts--;
             }
         }
         if (data.mouse[2]) {
@@ -36,7 +51,7 @@ var Asteroid = (function () {
             var delta = mpos_in_space.minus(this.player.pos);
             if (delta.dot(delta) <= BUILDING_RANGE * BUILDING_RANGE) {
                 if (this.map.destroy_belt(new Point(Math.floor(mpos_in_space.x / tile_size), Math.floor(mpos_in_space.y / tile_size))))
-                    player_data.building_materials++;
+                    player_data.construction_parts++;
             }
         }
     };
@@ -48,47 +63,17 @@ var Asteroid = (function () {
             this.map.render_ghost(data, mpos_in_space, player_data, cam);
         for (var _i = 0, _a = this.entities; _i < _a.length; _i++) {
             var e = _a[_i];
-            e.render(data, cam);
+            e.render(data, player_data, cam);
         }
-        this.player.render(data, cam);
+        this.player.render(data, player_data, cam);
         this.map.render_foreground(data, cam);
     };
+    Asteroid.prototype.deleteTileAt = function (pos) {
+        this.map.ground[pos.x][pos.y] = null;
+        if (pos.x in this.map.surface)
+            delete this.map.surface[pos.x][pos.y];
+    };
     return Asteroid;
-}());
-var Button = (function () {
-    function Button(tileset, screen_pos, tileset_pos, when_pressed) {
-        this.pressed = 0;
-        this.tileset = tileset;
-        this.screen_pos = screen_pos;
-        this.tileset_pos = tileset_pos;
-        this.when_pressed = when_pressed;
-        this.width = tileset.tile_width;
-        this.height = tileset.tile_height;
-    }
-    Button.prototype.render = function (data) {
-        var _a = [this.tileset_pos.x, this.tileset_pos.y], tx = _a[0], ty = _a[1];
-        if (this.pressed) {
-            tx += 1;
-        }
-        this.tileset.draw(data, tx, ty, this.screen_pos.x, this.screen_pos.y);
-    };
-    Button.prototype.tick = function () {
-        if (this.pressed) {
-            var delta = Date.now() - this.time_pressed;
-            if (delta > 1000)
-                this.toggle();
-        }
-    };
-    Button.prototype.on_click = function (data) {
-        if (!this.pressed) {
-            this.toggle();
-            this.time_pressed = Date.now();
-            this.when_pressed();
-            console.log(data.mpos.x);
-        }
-    };
-    Button.prototype.toggle = function () { this.pressed = (this.pressed + 1) % 2; };
-    return Button;
 }());
 var Entity = (function () {
     function Entity(pos, floating) {
@@ -103,10 +88,10 @@ var Entity = (function () {
     Entity.prototype.tick = function (data, asteroid) {
         if (this.movement != null)
             this.movement.tick(data, this);
+        var pos = this.pos;
+        var coordinate = new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size));
         if (!this.floating) {
-            var pos = this.pos;
             var belt_velocity = new Point(0, 0);
-            var coordinate = new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size));
             var prop_here = asteroid.map.get_prop(coordinate);
             if (prop_here != null) {
                 var d = prop_here.belt_dir();
@@ -116,7 +101,7 @@ var Entity = (function () {
                     var center = new Point((coordinate.x + 1 / 2) * tile_size, (coordinate.y + 1 / 2) * tile_size);
                     var delta = en.times(pos.minus(center).dot(en));
                     var deltanorm = Math.sqrt(delta.dot(delta));
-                    if (deltanorm < tile_size / 4)
+                    if (deltanorm < tile_size / 10)
                         belt_velocity = belt_velocity.plus(et.times(BELT_SPEED_PXPERSEC / 1000));
                     else
                         belt_velocity = belt_velocity.plus(delta.times(-BELT_SPEED_PXPERSEC / 1000 / deltanorm));
@@ -133,12 +118,16 @@ var Entity = (function () {
             this.velocity = this.velocity.minus(belt_velocity);
         }
         else {
-            this.pos = this.pos.plus(this.velocity);
+            this.pos = this.pos.plus(this.velocity.times(DT));
         }
+        if (this.item != null)
+            return !this.item.given(coordinate, asteroid);
+        else
+            return true;
     };
-    Entity.prototype.render = function (data, cam) {
+    Entity.prototype.render = function (data, player_data, cam) {
         if (this.graphics != null)
-            this.graphics.render(data, this, cam);
+            this.graphics.render(data, this, player_data, cam);
     };
     return Entity;
 }());
@@ -146,6 +135,19 @@ var ItemComponent = (function () {
     function ItemComponent(t) {
         this.t = t;
     }
+    ItemComponent.prototype.given = function (coordinate, asteroid) {
+        var p = asteroid.map.get_prop(coordinate);
+        if (p == null)
+            return false;
+        else {
+            var b = p.building;
+            if (b == null)
+                return false;
+            else {
+                return b.give(this.t);
+            }
+        }
+    };
     return ItemComponent;
 }());
 var itemtileset;
@@ -199,9 +201,14 @@ var Game = (function () {
         this.data.canvas.addEventListener("click", function (e) {
             for (var _i = 0, _a = _this.state.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
-                if (_this.data.mpos.x >= E.screen_pos.x && _this.data.mpos.x <= E.screen_pos.x + E.width)
-                    if (_this.data.mpos.y >= E.screen_pos.y && _this.data.mpos.y <= E.screen_pos.y + E.height)
-                        E.on_click(_this.data);
+                if (E instanceof SelectionButton && E.is_inside(_this.data.mpos)) {
+                    E.on_click();
+                    for (var _b = 0, _c = _this.state.UI; _b < _c.length; _b++) {
+                        var A = _c[_b];
+                        if (A != E && A instanceof SelectionButton && A.pressed)
+                            A.on_click();
+                    }
+                }
             }
         });
         this.loop();
@@ -234,7 +241,7 @@ var CreatureGraphicsComponent = (function () {
         this.tileset = new Tileset(src, 8, 16);
         this.timePerFrame = timePerFrame;
     }
-    CreatureGraphicsComponent.prototype.render = function (data, entity, cam) {
+    CreatureGraphicsComponent.prototype.render = function (data, entity, player_data, cam) {
         if (entity.velocity.x == 0 && entity.velocity.y == 0) {
             this.timeInThisState = 0;
         }
@@ -251,7 +258,10 @@ var CreatureGraphicsComponent = (function () {
         }
         var tx = Math.floor(this.timeInThisState / this.timePerFrame) % 4;
         var tileset = this.tileset;
-        tileset.draw(data, tx, this.facing, data.width / 2 - tileset.tile_width / 2, data.height / 2 - tileset.tile_height);
+        if (!player_data.jetpack)
+            tileset.draw(data, tx, this.facing, data.width / 2 - tileset.tile_width / 2, data.height / 2 - tileset.tile_height);
+        else
+            tileset.draw(data, 4, this.facing, data.width / 2 - tileset.tile_width / 2, data.height / 2 - tileset.tile_height);
     };
     CreatureGraphicsComponent.prototype.facingDirection = function (entity) {
         var v = entity.velocity;
@@ -273,7 +283,7 @@ var StaticGraphicsComponent = (function () {
         this.tx = tx;
         this.ty = ty;
     }
-    StaticGraphicsComponent.prototype.render = function (data, entity, cam) {
+    StaticGraphicsComponent.prototype.render = function (data, entity, player_data, cam) {
         this.ts.draw(data, this.tx, this.ty, entity.pos.x - cam.x - this.ts.tile_width / 2, entity.pos.y - cam.y - this.ts.tile_height);
     };
     return StaticGraphicsComponent;
@@ -281,6 +291,12 @@ var StaticGraphicsComponent = (function () {
 var DT = 1000 / 60;
 var BELT_SPEED_PXPERSEC = 32;
 var BUILDING_RANGE = 100;
+var TICKS_PER_MINE = 60;
+var GROUND_MAX_VALUE = 32;
+var CONSTRUCTION_PARTS_RECIPE = [5, 0, 1 / 16];
+var CONSTRUCTION_PARTS_TIME = 100;
+var FUEL_RECIPE = [0, 100, 1];
+var FUEL_TIME = 1000;
 window.onload = function () {
     itemtileset = new Tileset("assets/items.png", 8, 8);
     var game = new Game(document.getElementById('canvas'));
@@ -300,7 +316,9 @@ var Tile = (function () {
     }
     Tile.prototype.render = function (data, ts, x, y) {
         var _a = this.tilePos(), tx = _a[0], ty = _a[1];
+        data.ctx.globalAlpha = this.quantity / GROUND_MAX_VALUE;
         ts.draw(data, tx, ty, x, y);
+        data.ctx.globalAlpha = 1;
     };
     Tile.prototype.tilePos = function () {
         switch (this.type) {
@@ -329,15 +347,15 @@ var Map = (function () {
                 this.ground[i][j] = null;
             }
         }
-        this.generate([500, 100, 100]);
+        this.generate([100, 0, 20]);
     };
-    Map.prototype.tick = function (asteroid) {
+    Map.prototype.tick = function (asteroid, player_data) {
         var surface = this.surface;
         for (var i in surface) {
             for (var j in surface[i]) {
                 var b = surface[i][j].building;
                 if (b != null)
-                    b.tick(surface[i][j].pos, asteroid);
+                    b.tick(surface[i][j].pos, asteroid, player_data);
             }
         }
     };
@@ -376,10 +394,8 @@ var Map = (function () {
     };
     Map.prototype.render_ghost = function (data, pos, player_data, cam) {
         var coordinates = new Point(Math.floor(pos.x / tile_size), Math.floor(pos.y / tile_size));
-        if (coordinates.x < 0 || coordinates.x >= this.width)
-            return;
-        if (coordinates.y < 0 || coordinates.y >= this.height)
-            return;
+        if (this.emptyTile(coordinates))
+            return false;
         switch (player_data.selected_building) {
             case BuildingType.BELT: {
                 var g = new Belt(player_data.selected_direction);
@@ -388,6 +404,16 @@ var Map = (function () {
             }
             case BuildingType.MINE: {
                 var g = new Mine();
+                g.render(data, this.tileset, coordinates.x * tile_size - cam.x, coordinates.y * tile_size - cam.y, true);
+                break;
+            }
+            case BuildingType.CONSTRUCTION_PARTS_FACTORY: {
+                var g = make_construction_parts_factory();
+                g.render(data, this.tileset, coordinates.x * tile_size - cam.x, coordinates.y * tile_size - cam.y, true);
+                break;
+            }
+            case BuildingType.FUEL_FACTORY: {
+                var g = make_fuel_factory();
                 g.render(data, this.tileset, coordinates.x * tile_size - cam.x, coordinates.y * tile_size - cam.y, true);
                 break;
             }
@@ -405,17 +431,22 @@ var Map = (function () {
                 return this.add_belt(new Point(coordinates.x, coordinates.y), player_data.selected_direction);
             case BuildingType.MINE:
                 return this.add_building(new Point(coordinates.x, coordinates.y), new Mine());
+            case BuildingType.CONSTRUCTION_PARTS_FACTORY:
+                return this.add_building(new Point(coordinates.x, coordinates.y), make_construction_parts_factory());
+            case BuildingType.FUEL_FACTORY:
+                return this.add_building(new Point(coordinates.x, coordinates.y), make_fuel_factory());
             default: return false;
         }
     };
     Map.prototype.generate = function (req) {
         var queue = [];
         var seed = new Point(rand_int(this.width), rand_int(this.height));
+        var ret = seed;
         for (var k = 0; k < 3; k++) {
             for (var i = 0; i < req[k]; i++) {
                 while (this.ground[seed.x][seed.y])
                     seed = new Point(rand_int(this.width), rand_int(this.height));
-                this.ground[seed.x][seed.y] = new Tile(k, 100);
+                this.ground[seed.x][seed.y] = new Tile(k, GROUND_MAX_VALUE);
                 var to_fill = [];
                 for (var j = 0; j < 8; j++)
                     to_fill.push([rand_int(3) - 1, rand_int(3) - 1]);
@@ -425,7 +456,7 @@ var Map = (function () {
                     new_pos.x += idx[0];
                     new_pos.y += idx[1];
                     if (i < req[k] && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-                        this.ground[new_pos.x][new_pos.y] = new Tile(k, 100);
+                        this.ground[new_pos.x][new_pos.y] = new Tile(k, GROUND_MAX_VALUE);
                         queue.push([new_pos, 0]);
                         i++;
                     }
@@ -452,11 +483,12 @@ var Map = (function () {
                 if (idx == 3)
                     new_pos.y -= 1;
                 if (cur_gen < this.max_gen && new_pos.is_valid(this.width, this.height) && !this.ground[new_pos.x][new_pos.y]) {
-                    this.ground[new_pos.x][new_pos.y] = new Tile(Resource.ICE, 100);
+                    this.ground[new_pos.x][new_pos.y] = new Tile(Resource.ICE, GROUND_MAX_VALUE);
                     queue.push([new_pos, cur_gen + 1]);
                 }
             }
         }
+        return ret;
     };
     Map.prototype.empty = function (p) {
         var i = Math.floor(p.x / tile_size);
@@ -467,7 +499,18 @@ var Map = (function () {
             return true;
         return (this.ground[i][j] == null);
     };
+    Map.prototype.emptyTile = function (p) {
+        var i = p.x;
+        var j = p.y;
+        if (i < 0 || i >= this.width)
+            return true;
+        if (j < 0 || j >= this.width)
+            return true;
+        return (this.ground[i][j] == null);
+    };
     Map.prototype.add_belt = function (pos, dir) {
+        if (this.emptyTile(pos))
+            return false;
         var i = pos.x;
         var j = pos.y;
         if (i in this.surface) {
@@ -494,6 +537,8 @@ var Map = (function () {
         }
     };
     Map.prototype.destroy_belt = function (pos) {
+        if (this.emptyTile(pos))
+            return false;
         var i = pos.x;
         var j = pos.y;
         if (i in this.surface) {
@@ -501,6 +546,8 @@ var Map = (function () {
                 var p = this.surface[i][j];
                 if (p.belt != null) {
                     p.belt = null;
+                    if (p.building == null)
+                        delete this.surface[i][j];
                     return true;
                 }
             }
@@ -508,6 +555,8 @@ var Map = (function () {
         return false;
     };
     Map.prototype.add_building = function (pos, b) {
+        if (this.emptyTile(pos))
+            return false;
         var i = pos.x;
         var j = pos.y;
         if (i in this.surface) {
@@ -634,6 +683,7 @@ var Building = (function () {
         ts.draw(data, tx, ty, x, y);
         data.ctx.globalAlpha = 1;
     };
+    Building.prototype.give = function (t) { return false; };
     return Building;
 }());
 var Mine = (function (_super) {
@@ -641,21 +691,118 @@ var Mine = (function (_super) {
     function Mine() {
         var _this = _super.call(this) || this;
         _this.ticks_since_mined = 0;
-        _this.ticks_between_mine = 10;
+        _this.ticks_between_mine = TICKS_PER_MINE;
         return _this;
     }
-    Mine.prototype.tick = function (coords, asteroid) {
+    Mine.prototype.tick = function (coords, asteroid, player_data) {
         this.ticks_since_mined++;
         if (this.ticks_since_mined >= this.ticks_between_mine) {
             this.ticks_since_mined = 0;
-            asteroid.entities.push(make_item(coords, Resource.ICE));
+            this.mine(coords, asteroid);
         }
+    };
+    Mine.prototype.mine = function (coords, asteroid) {
+        var likelihood = [];
+        var total = 0;
+        for (var dx = -2; dx <= 2; dx++) {
+            for (var dy = -2; dy <= 2; dy++) {
+                var nc_1 = coords.plus(new Point(dx, dy));
+                if (!asteroid.map.emptyTile(nc_1)) {
+                    var this_likelihood = 3 - Math.sqrt(dx * dx + dy * dy);
+                    if (asteroid.map.get_prop(nc_1) != null)
+                        this_likelihood /= 5;
+                    total += this_likelihood;
+                    likelihood.push([total, nc_1]);
+                }
+            }
+        }
+        var n = Math.random() * total;
+        var i = 0;
+        while (n >= likelihood[i][0])
+            i++;
+        var nc = likelihood[i][1];
+        var g = asteroid.map.ground[nc.x][nc.y];
+        g.quantity--;
+        asteroid.entities.push(make_item(coords, g.type));
+        if (g.quantity == 0)
+            asteroid.deleteTileAt(nc);
     };
     Mine.prototype.tile_pos = function (data) {
         return [0, 2];
     };
     return Mine;
 }(Building));
+var FactoryType;
+(function (FactoryType) {
+    FactoryType[FactoryType["FUEL"] = 0] = "FUEL";
+    FactoryType[FactoryType["CONSTRUCTION_PARTS"] = 1] = "CONSTRUCTION_PARTS";
+})(FactoryType || (FactoryType = {}));
+var Factory = (function (_super) {
+    __extends(Factory, _super);
+    function Factory(recipe, ticks_to_build, type) {
+        var _this = _super.call(this) || this;
+        _this.have = [0, 0, 0];
+        _this.ticks_til_build = -1;
+        _this.recipe = recipe;
+        _this.ticks_to_build = ticks_to_build;
+        _this.type = type;
+        return _this;
+    }
+    Factory.prototype.tick = function (coords, asteroid, player_data) {
+        if (this.ticks_til_build == 0) {
+            switch (this.type) {
+                case FactoryType.FUEL:
+                    player_data.fuel++;
+                    break;
+                case FactoryType.CONSTRUCTION_PARTS:
+                    player_data.construction_parts++;
+                    break;
+            }
+        }
+        if (this.ticks_til_build >= 0) {
+            this.ticks_til_build--;
+        }
+        if (this.ticks_til_build == -1) {
+            var can = true;
+            for (var i in this.have)
+                if (this.have[i] < this.recipe[i])
+                    can = false;
+            if (can) {
+                this.ticks_til_build = this.ticks_to_build;
+                for (var i in this.have)
+                    this.have[i] -= this.recipe[i];
+            }
+        }
+    };
+    Factory.prototype.give = function (t) {
+        if (this.have[t] < this.recipe[t]) {
+            this.have[t]++;
+            return true;
+        }
+        else
+            return false;
+    };
+    Factory.prototype.tile_pos = function (data) {
+        if (this.ticks_til_build == -1)
+            switch (this.type) {
+                case FactoryType.FUEL: return [0, 4];
+                case FactoryType.CONSTRUCTION_PARTS: return [1, 4];
+            }
+        else
+            switch (this.type) {
+                case FactoryType.FUEL: return [0, 5];
+                case FactoryType.CONSTRUCTION_PARTS: return [1, 5];
+            }
+        return [0, 0];
+    };
+    return Factory;
+}(Building));
+function make_construction_parts_factory() {
+    return new Factory(CONSTRUCTION_PARTS_RECIPE, CONSTRUCTION_PARTS_TIME, FactoryType.CONSTRUCTION_PARTS);
+}
+function make_fuel_factory() {
+    return new Factory(FUEL_RECIPE, FUEL_TIME, FactoryType.FUEL);
+}
 var Belt = (function () {
     function Belt(facing) {
         this.facing = facing;
@@ -709,11 +856,13 @@ var BuildingType;
     BuildingType[BuildingType["NONE"] = 0] = "NONE";
     BuildingType[BuildingType["BELT"] = 1] = "BELT";
     BuildingType[BuildingType["MINE"] = 2] = "MINE";
+    BuildingType[BuildingType["FUEL_FACTORY"] = 3] = "FUEL_FACTORY";
+    BuildingType[BuildingType["CONSTRUCTION_PARTS_FACTORY"] = 4] = "CONSTRUCTION_PARTS_FACTORY";
 })(BuildingType || (BuildingType = {}));
 var PlayerData = (function () {
     function PlayerData() {
         var _this = this;
-        this.selected_building = BuildingType.MINE;
+        this.selected_building = BuildingType.NONE;
         this.selected_direction = Facing.UP;
         function next(dir) {
             switch (dir) {
@@ -732,8 +881,18 @@ var PlayerData = (function () {
                 _this.selected_building = BuildingType.BELT;
             if (e.keyCode == 77)
                 _this.selected_building = BuildingType.MINE;
+            if (e.keyCode == 70)
+                _this.selected_building = BuildingType.FUEL_FACTORY;
+            if (e.keyCode == 67)
+                _this.selected_building = BuildingType.CONSTRUCTION_PARTS_FACTORY;
+            if (e.keyCode == 74) {
+                if (_this.fuel > 0)
+                    _this.jetpack = !_this.jetpack;
+            }
         });
-        this.building_materials = 10;
+        this.construction_parts = 10;
+        this.fuel = 100;
+        this.jetpack = false;
     }
     return PlayerData;
 }());
@@ -742,16 +901,22 @@ var PlayState = (function (_super) {
     function PlayState(data) {
         var _this = _super.call(this, data) || this;
         _this.player_data = new PlayerData();
-        _this.asteroid = new Asteroid(new Map(100, 100, 25));
+        _this.asteroid = new Asteroid(new Map(30, 30, 25));
         _this.cam = new Point(0, 0);
         _this.leftover_t = 0;
-        _this.UI = [];
-        var button_tileset = new Tileset('assets/test_button.png', 32);
-        var test = function () { };
-        var test_button = new Button(button_tileset, new Point(10, 10), new Point(0, 0), test.bind(_this.data));
-        _this.UI.push(test_button);
+        _this.init_UI();
         return _this;
     }
+    PlayState.prototype.init_UI = function () {
+        this.UI = [];
+        var buttons_tileset = new Tileset('assets/test_button.png', 32);
+        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 44), new Point(0, 0), BuildingType.MINE));
+        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 10), new Point(0, 0), BuildingType.BELT));
+        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 78), new Point(0, 0), BuildingType.FUEL_FACTORY));
+        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 112), new Point(0, 0), BuildingType.CONSTRUCTION_PARTS_FACTORY));
+        this.UI.push(new MineralCounter(0, 0, new Point(10, 590)));
+        this.UI.push(new FuelInfo(0, 0, new Point(10, 570)));
+    };
     PlayState.prototype.tick = function () {
         this.leftover_t += this.data.dt();
         while (this.leftover_t >= DT) {
@@ -762,7 +927,7 @@ var PlayState = (function (_super) {
             this.cam.y = Math.floor(player_pos.y - this.data.height / 2);
             for (var _i = 0, _a = this.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
-                E.tick();
+                E.tick(this.player_data);
             }
         }
         return this;
@@ -792,4 +957,72 @@ var Tileset = (function () {
         data.ctx.drawImage(this.img, tx * tile_width, ty * tile_height, tile_width, tile_height, x, y, tile_width, tile_height);
     };
     return Tileset;
+}());
+var SelectionButton = (function () {
+    function SelectionButton(tileset, screen_pos, tileset_pos, switch_to) {
+        this.pressed = false;
+        this.tileset = tileset;
+        this.screen_pos = screen_pos;
+        this.tileset_pos = tileset_pos;
+        this.switch_to = switch_to;
+        this.width = tileset.tile_width;
+        this.height = tileset.tile_height;
+    }
+    SelectionButton.prototype.render = function (data) {
+        var _a = [this.tileset_pos.x, this.tileset_pos.y], tx = _a[0], ty = _a[1];
+        if (this.pressed) {
+            tx += 1;
+        }
+        this.tileset.draw(data, tx, ty, this.screen_pos.x, this.screen_pos.y);
+    };
+    SelectionButton.prototype.tick = function (player_data) {
+        if (this.pressed)
+            player_data.selected_building = this.switch_to;
+    };
+    SelectionButton.prototype.is_inside = function (p) {
+        if (p.x >= this.screen_pos.x && p.x <= this.screen_pos.x + this.width)
+            if (p.y >= this.screen_pos.y && p.y <= this.screen_pos.y + this.height)
+                return true;
+        return false;
+    };
+    SelectionButton.prototype.on_click = function () {
+        this.pressed = !this.pressed;
+    };
+    return SelectionButton;
+}());
+var MineralCounter = (function () {
+    function MineralCounter(width, height, screen_pos) {
+        this.width = width;
+        this.height = height;
+        this.screen_pos = screen_pos;
+        this.construction_parts = 0;
+    }
+    MineralCounter.prototype.tick = function (player_data) {
+        this.construction_parts = player_data.construction_parts;
+    };
+    MineralCounter.prototype.render = function (data) {
+        data.ctx.fillStyle = 'white';
+        data.ctx.font = "13px Arial";
+        data.ctx.fillText("CP: " + this.construction_parts, this.screen_pos.x, this.screen_pos.y);
+    };
+    MineralCounter.prototype.on_click = function (data) { };
+    return MineralCounter;
+}());
+var FuelInfo = (function () {
+    function FuelInfo(width, height, screen_pos) {
+        this.width = width;
+        this.height = height;
+        this.screen_pos = screen_pos;
+        this.fuel = 0;
+    }
+    FuelInfo.prototype.tick = function (player_data) {
+        this.fuel = player_data.fuel;
+    };
+    FuelInfo.prototype.render = function (data) {
+        data.ctx.fillStyle = 'white';
+        data.ctx.font = "13px Arial";
+        data.ctx.fillText("Fuel: " + this.fuel, this.screen_pos.x, this.screen_pos.y);
+    };
+    FuelInfo.prototype.on_click = function (data) { };
+    return FuelInfo;
 }());
