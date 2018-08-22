@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -13,13 +10,41 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var Asteroid = (function () {
     function Asteroid(map) {
+        this.lifetime = 0;
         this.map = map;
         this.entities = [];
+        this.asteroids = [];
         this.player = new Entity(new Point(100, 100), false);
         this.player.movement = new PlayerMovementComponent();
         this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
     }
     Asteroid.prototype.tick = function (data, player_data, cam) {
+        this.lifetime++;
+        var center = new Point(this.map.width, this.map.height).times(tile_size / 2);
+        var field_r = Math.sqrt(this.map.width * this.map.width + this.map.height * this.map.height) * tile_size / 2
+            + Math.sqrt(data.width * data.width + data.height * data.height) / 2;
+        if (this.lifetime % ASTEROID_INTERVAL == 0) {
+            var theta = 2 * Math.random() * Math.PI;
+            var p = center.plus(new Point(Math.sin(theta), Math.cos(theta)).times(field_r));
+            var tgt = this.map.pick_target();
+            var delta = tgt.minus(p);
+            var v = delta.times(ASTEROID_VELOCITY / Math.sqrt(delta.dot(delta)));
+            this.asteroids.push([p, v]);
+        }
+        for (var i = 0; i < this.asteroids.length;) {
+            var a = this.asteroids[i];
+            a[0] = a[0].plus(a[1].times(DT));
+            var rvec = a[0].minus(center);
+            var r = Math.sqrt(rvec.dot(rvec));
+            if (!this.map.empty(a[0]) || r > field_r) {
+                if (!this.map.empty(a[0]))
+                    this.map.make_crater(a[0], this);
+                this.asteroids[i] = this.asteroids[this.asteroids.length - 1];
+                this.asteroids.length--;
+            }
+            else
+                i++;
+        }
         if (player_data.fuel <= 0)
             player_data.jetpack = false;
         this.player.floating = player_data.jetpack;
@@ -67,6 +92,11 @@ var Asteroid = (function () {
         }
         this.player.render(data, player_data, cam);
         this.map.render_foreground(data, cam);
+        for (var _b = 0, _c = this.asteroids; _b < _c.length; _b++) {
+            var a = _c[_b];
+            var p = a[0];
+            itemtileset.draw(data, 3, 0, Math.floor(p.x) - 4 - cam.x, Math.floor(p.y) - 4 - cam.y);
+        }
     };
     Asteroid.prototype.deleteTileAt = function (pos) {
         this.map.ground[pos.x][pos.y] = null;
@@ -297,6 +327,8 @@ var CONSTRUCTION_PARTS_RECIPE = [5, 0, 1 / 16];
 var CONSTRUCTION_PARTS_TIME = 100;
 var FUEL_RECIPE = [0, 100, 1];
 var FUEL_TIME = 1000;
+var ASTEROID_VELOCITY = 40 / 1000;
+var ASTEROID_INTERVAL = 60;
 window.onload = function () {
     itemtileset = new Tileset("assets/items.png", 8, 8);
     var game = new Game(document.getElementById('canvas'));
@@ -587,6 +619,43 @@ var Map = (function () {
             if (p.y in this.surface[p.x])
                 return this.surface[p.x][p.y];
         return null;
+    };
+    Map.prototype.make_crater = function (p, asteroid) {
+        var coords = new Point(Math.floor(p.x / tile_size), Math.floor(p.y / tile_size));
+        for (var dx = -2; dx <= 2; dx++)
+            for (var dy = -2; dy <= 2; dy++) {
+                var cc = coords.plus(new Point(dx, dy));
+                if (!this.emptyTile(cc)) {
+                    console.log(">:(");
+                    var tile = this.ground[cc.x][cc.y];
+                    tile.quantity -= Math.floor((9 - dx * dx - dy * dy) * (-Math.log(Math.random())));
+                    if (tile.quantity <= 0)
+                        asteroid.deleteTileAt(cc);
+                }
+            }
+    };
+    Map.prototype.pick_target = function () {
+        var likelihoods = [];
+        var total = 0;
+        for (var i_1 = 0; i_1 != this.width; i_1++) {
+            for (var j = 0; j != this.height; j++) {
+                if (this.ground[i_1][j] == null)
+                    continue;
+                else {
+                    var likelihood = 1;
+                    if (i_1 in this.surface && j in this.surface[i_1])
+                        likelihood *= 2;
+                    total += likelihood;
+                    likelihoods.push([total, new Point(i_1, j).times(tile_size)]);
+                }
+            }
+        }
+        likelihoods.push([total + 1, new Point(Math.random() * this.width, Math.random() * this.height)]);
+        var p = Math.random() * total;
+        var i = 0;
+        while (likelihoods[i][0] <= p)
+            i++;
+        return likelihoods[i][1];
     };
     return Map;
 }());

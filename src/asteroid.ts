@@ -2,17 +2,44 @@ class Asteroid {
   map : Map;
   entities : Entity[];
   player : Entity;
-  asteroids : [Point, Point][];
+  asteroids : [Point, Point][]; //pos, velocity
+  lifetime : number = 0;
 
   constructor(map : Map) {
     this.map = map;
     this.entities = [];
+    this.asteroids = [];
     this.player = new Entity(new Point(100,100), false);
     this.player.movement = new PlayerMovementComponent();
     this.player.graphics = new CreatureGraphicsComponent("assets/player.png");
   }
 
   public tick(data : GameData, player_data : PlayerData, cam : Point) {
+    this.lifetime++;
+    let center = new Point(this.map.width, this.map.height).times(tile_size/2);
+    let field_r = Math.sqrt(this.map.width*this.map.width + this.map.height*this.map.height)*tile_size/2
+                + Math.sqrt(data.width*data.width + data.height*data.height)/2;
+    if (this.lifetime%ASTEROID_INTERVAL == 0) {
+      let theta = 2 * Math.random() * Math.PI;
+      let p = center.plus(new Point(Math.sin(theta), Math.cos(theta)).times(field_r))
+      let tgt = this.map.pick_target();
+      let delta = tgt.minus(p);
+      let v = delta.times(ASTEROID_VELOCITY/Math.sqrt(delta.dot(delta)));
+      this.asteroids.push([p, v]);
+    }
+    for (let i = 0; i < this.asteroids.length;) {
+      let a = this.asteroids[i];
+      a[0] = a[0].plus(a[1].times(DT));
+      let rvec = a[0].minus(center);
+      let r = Math.sqrt(rvec.dot(rvec));
+      if (!this.map.empty(a[0]) || r > field_r) {
+        if (!this.map.empty(a[0]))
+          this.map.make_crater(a[0], this);
+        this.asteroids[i] = this.asteroids[this.asteroids.length-1];
+        this.asteroids.length--;
+      } else i++;
+    }
+
     if (player_data.fuel <= 0) player_data.jetpack = false;
     this.player.floating = player_data.jetpack;
     if (player_data.jetpack) {
@@ -61,6 +88,11 @@ class Asteroid {
 
     this.player.render(data,player_data,cam);
     this.map.render_foreground(data, cam);
+
+    for (let a of this.asteroids) {
+      let p = a[0];
+      itemtileset.draw(data, 3, 0, Math.floor(p.x) - 4 - cam.x, Math.floor(p.y) - 4 - cam.y);
+    }
   }
 
   public deleteTileAt(pos : Point) {

@@ -295,4 +295,39 @@ class Map {
         return this.surface[p.x][p.y];
     return null;
   }
+
+  public make_crater(p : Point, asteroid : Asteroid) {
+    let coords = new Point(Math.floor(p.x/tile_size), Math.floor(p.y/tile_size));
+    for (let dx = -2; dx <= 2; dx++)
+    for (let dy = -2; dy <= 2; dy++) {
+      let cc = coords.plus(new Point(dx, dy));
+      if (!this.emptyTile(cc)) {
+        console.log(">:(");
+        let tile = this.ground[cc.x][cc.y] as Tile;
+        tile.quantity -= Math.floor((9 - dx*dx - dy*dy)*(-Math.log(Math.random())));
+        if (tile.quantity <= 0) asteroid.deleteTileAt(cc);
+      }
+    }
+  }
+
+  public pick_target() : Point {
+    let likelihoods : [number, Point][] = [];
+    let total = 0;
+    for (let i = 0; i != this.width; i++) {
+      for (let j = 0; j != this.height; j++) {
+        if (this.ground[i][j] == null) continue;
+        else {
+          let likelihood = 1;
+          if (i in this.surface && j in this.surface[i]) likelihood *= 2;
+          total += likelihood;
+          likelihoods.push([total, new Point(i,j).times(tile_size)]);
+        }
+      }
+    }
+    likelihoods.push([total+1, new Point(Math.random() * this.width, Math.random() * this.height)]);
+    let p = Math.random() * total;
+    let i = 0;
+    while (likelihoods[i][0] <= p) i++;
+    return likelihoods[i][1];
+  }
 }

@@ -9,6 +9,9 @@ const CONSTRUCTION_PARTS_TIME = 100;
 const FUEL_RECIPE : [number, number, number] = [0,100,1];
 const FUEL_TIME = 1000;
 
+const ASTEROID_VELOCITY = 40/1000;
+const ASTEROID_INTERVAL = 60;
+
 
 window.onload = function() {
   itemtileset = new Tileset("assets/items.png", 8, 8);
