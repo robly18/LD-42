@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -652,11 +649,11 @@ var Map = (function () {
                     if (i_1 in this.surface && j in this.surface[i_1])
                         likelihood *= 2;
                     total += likelihood;
-                    likelihoods.push([total, new Point(i_1, j).times(tile_size)]);
+                    likelihoods.push([total, new Point(i_1 + Math.random(), j + Math.random()).times(tile_size)]);
                 }
             }
         }
-        likelihoods.push([total + 1, new Point(Math.random() * this.width, Math.random() * this.height)]);
+        likelihoods.push([total * 0.01 + 1, new Point(Math.random() * this.width, Math.random() * this.height)]);
         var p = Math.random() * total;
         var i = 0;
         while (likelihoods[i][0] <= p)
@@ -847,6 +844,20 @@ var Factory = (function (_super) {
                 for (var i in this.have)
                     this.have[i] -= this.recipe[i];
             }
+        }
+    };
+    Factory.prototype.render = function (data, ts, x, y, ghost) {
+        if (ghost === void 0) { ghost = false; }
+        _super.prototype.render.call(this, data, ts, x, y, ghost);
+        if (this.ticks_til_build != -1) {
+            var ctx = data.ctx;
+            var barp = new Point(x + 2, y + tile_size - 6);
+            var w = tile_size - 4;
+            var h = 4;
+            ctx.fillStyle = "black";
+            ctx.fillRect(barp.x, barp.y, w, h);
+            ctx.fillStyle = "green";
+            ctx.fillRect(barp.x, barp.y, Math.floor(w * this.ticks_til_build / this.ticks_to_build), h);
         }
     };
     Factory.prototype.give = function (t) {

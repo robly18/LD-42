@@ -319,11 +319,11 @@ class Map {
           let likelihood = 1;
           if (i in this.surface && j in this.surface[i]) likelihood *= 2;
           total += likelihood;
-          likelihoods.push([total, new Point(i,j).times(tile_size)]);
+          likelihoods.push([total, new Point(i+Math.random(),j+Math.random()).times(tile_size)]);
         }
       }
     }
-    likelihoods.push([total+1, new Point(Math.random() * this.width, Math.random() * this.height)]);
+    likelihoods.push([total*0.01+1, new Point(Math.random() * this.width, Math.random() * this.height)]);
     let p = Math.random() * total;
     let i = 0;
     while (likelihoods[i][0] <= p) i++;
