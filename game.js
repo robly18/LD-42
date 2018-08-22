@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -52,7 +49,7 @@ var Asteroid = (function () {
             player_data.jetpack = false;
         this.player.floating = player_data.jetpack;
         if (player_data.jetpack) {
-            player_data.fuel--;
+            player_data.fuel -= 1 / 16;
         }
         this.map.tick(this, player_data);
         for (var i = 0; i < this.entities.length;) {
@@ -845,6 +842,20 @@ var Factory = (function (_super) {
             }
         }
     };
+    Factory.prototype.render = function (data, ts, x, y, ghost) {
+        if (ghost === void 0) { ghost = false; }
+        _super.prototype.render.call(this, data, ts, x, y, ghost);
+        if (this.ticks_til_build != -1) {
+            var ctx = data.ctx;
+            var barp = new Point(x + 2, y + tile_size - 6);
+            var w = tile_size - 4;
+            var h = 4;
+            ctx.fillStyle = "black";
+            ctx.fillRect(barp.x, barp.y, w, h);
+            ctx.fillStyle = "green";
+            ctx.fillRect(barp.x, barp.y, Math.floor(w * this.ticks_til_build / this.ticks_to_build), h);
+        }
+    };
     Factory.prototype.give = function (t) {
         if (this.have[t] < this.recipe[t]) {
             this.have[t]++;
@@ -1022,13 +1033,8 @@ var NavigationState = (function (_super) {
         return _this;
     }
     NavigationState.prototype.tick = function () {
-<<<<<<< HEAD
         if (this.click) { }
         return this;
-=======
-        if (this.click) {
-        }
->>>>>>> 2453789e463e131a096d566acc6f3faa6edd9ca7
     };
     NavigationState.prototype.render = function () {
         this.data.ctx.fillStyle = "black";
@@ -1052,22 +1058,14 @@ var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.init = function () {
         for (var i = 0; i < this.width; i++)
             for (var j = 0; j < this.height; j++)
-<<<<<<< HEAD
                 this.matrix[i][j] = null;
-=======
-                matrix[i][j] = null;
->>>>>>> 2453789e463e131a096d566acc6f3faa6edd9ca7
         this.generate();
     };
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.generate = function () {
         for (var i = 0; i < this.width; i++)
             for (var j = 0; j < this.height; j++)
                 if (rand_int(100) < 30)
-<<<<<<< HEAD
                     this.matrix[i][j] = new Map(30, 30, 25);
-=======
-                    matrix[i][j] = new Map(30, 30, 25);
->>>>>>> 2453789e463e131a096d566acc6f3faa6edd9ca7
     };
     SuperDuperAwesomeGalacticSpaceStarMap.prototype.dist = function (p1, p2) {
         return Math.max(Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));

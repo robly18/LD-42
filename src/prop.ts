@@ -119,6 +119,20 @@ class Factory extends Building {
     }
   }
 
+  public render(data : GameData, ts : Tileset, x : number, y : number, ghost : boolean = false) {
+    super.render(data, ts, x, y, ghost);
+    if (this.ticks_til_build != -1) {
+      let ctx = data.ctx;
+      let barp = new Point(x + 2, y + tile_size - 6);
+      let w = tile_size - 4;
+      let h = 4;
+      ctx.fillStyle = "black";
+      ctx.fillRect(barp.x, barp.y, w, h);
+      ctx.fillStyle = "green";
+      ctx.fillRect(barp.x, barp.y, Math.floor(w * this.ticks_til_build / this.ticks_to_build), h);
+    }
+  }
+
   public give(t : Resource) {
     if (this.have[t] < this.recipe[t]) {
       this.have[t]++; return true;
