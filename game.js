@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -226,8 +229,11 @@ var navigation_state;
 var Game = (function () {
     function Game(canvas) {
         this.data = new GameData(canvas);
-        this.state = new NavigationState(this.data);
+        menu_state = new MenuState(this.data);
+        navigation_state = new NavigationState(this.data);
+        this.state = new PlayState(this.data);
         this.state.set_player_data(new PlayerData());
+        this.state.set_map(navigation_state.map.matrix[0][0]);
     }
     Game.prototype.start = function () {
         var _this = this;
@@ -235,7 +241,7 @@ var Game = (function () {
             _this.state.click = true;
             for (var _i = 0, _a = _this.state.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
-                if (E instanceof SelectionButton && E.is_inside(_this.data.mpos)) {
+                if ((E instanceof SelectionButton || E instanceof LauchButton) && E.is_inside(_this.data.mpos)) {
                     E.on_click();
                     for (var _b = 0, _c = _this.state.UI; _b < _c.length; _b++) {
                         var A = _c[_b];
@@ -914,6 +920,7 @@ var State = (function () {
         this.UI = [];
         this.click = false;
     }
+    State.prototype.set_map = function (map) { };
     State.prototype.set_player_data = function (player_data) { };
     State.prototype.tick = function () { return this; };
     State.prototype.render = function () { };
@@ -1006,11 +1013,12 @@ var PlayState = (function (_super) {
     };
     PlayState.prototype.init_UI = function () {
         this.UI = [];
-        var buttons_tileset = new Tileset('assets/test_button.png', 32);
-        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 44), new Point(0, 0), BuildingType.MINE));
+        var buttons_tileset = new Tileset('assets/button.png', 32);
+        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 44), new Point(0, 1), BuildingType.MINE));
         this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 10), new Point(0, 0), BuildingType.BELT));
-        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 78), new Point(0, 0), BuildingType.FUEL_FACTORY));
-        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 112), new Point(0, 0), BuildingType.CONSTRUCTION_PARTS_FACTORY));
+        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 78), new Point(0, 2), BuildingType.FUEL_FACTORY));
+        this.UI.push(new SelectionButton(buttons_tileset, new Point(10, 112), new Point(0, 3), BuildingType.CONSTRUCTION_PARTS_FACTORY));
+        this.UI.push(new LauchButton(buttons_tileset, new Point(10, 146), new Point(2, 1)));
         this.UI.push(new MineralCounter(0, 0, new Point(10, 590)));
         this.UI.push(new FuelInfo(0, 0, new Point(10, 570)));
     };
@@ -1024,6 +1032,14 @@ var PlayState = (function (_super) {
             this.cam.y = Math.floor(player_pos.y - this.data.height / 2);
             for (var _i = 0, _a = this.UI; _i < _a.length; _i++) {
                 var E = _a[_i];
+                if (E instanceof LauchButton && E.pressed) {
+                    var p = navigation_state.map.cur_pos;
+                    navigation_state.map.matrix[p.x][p.y] = null;
+                    this.player_data.construction_parts = 10;
+                    this.player_data.jetpack = false;
+                    navigation_state.set_player_data(this.player_data);
+                    return navigation_state;
+                }
                 E.tick(this.player_data);
             }
         }
@@ -1060,6 +1076,7 @@ var NavigationState = (function (_super) {
                 var new_state = new PlayState(this.data);
                 new_state.set_map(this.map.matrix[p.x][p.y]);
                 new_state.set_player_data(this.player_data);
+                this.map.cur_pos = p;
                 return new_state;
             }
         }
@@ -1082,19 +1099,22 @@ var NavigationState = (function (_super) {
         ast.src = 'assets/asteroid.png';
         for (var i = 0; i < this.map.width; i++)
             for (var j = 0; j < this.map.height; j++)
-                if (!this.map.is_empty(new Point(i, j)))
+                if (!this.map.is_empty(new Point(i, j)) && !(i == 16 && j == 11))
                     this.data.ctx.drawImage(ast, i * width, j * height);
+        var plr = new Image();
+        plr.src = 'assets/player.png';
+        this.data.ctx.drawImage(plr, 0, 0, 8, 16, this.map.cur_pos.x * width + 16, this.map.cur_pos.y * height + 10, 16, 32);
+        this.data.ctx.fillStyle = 'white';
+        var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
+        var cost = this.map.dist(this.map.cur_pos, p) * COST_PER_UNIT;
+        if (cost > this.player_data.fuel)
+            this.data.ctx.fillStyle = 'red';
+        this.data.ctx.font = "13px Arial";
+        this.data.ctx.fillText("Fuel: " + cost, this.data.mpos.x, this.data.mpos.y);
     };
     return NavigationState;
 }(State));
-var COST_PER_UNIT = 10;
-var EndState = (function (_super) {
-    __extends(EndState, _super);
-    function EndState() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    return EndState;
-}(State));
+var COST_PER_UNIT = 50;
 var SuperDuperAwesomeGalacticSpaceStarMap = (function () {
     function SuperDuperAwesomeGalacticSpaceStarMap(width, height) {
         this.width = width;
@@ -1172,6 +1192,33 @@ var SelectionButton = (function () {
         this.pressed = !this.pressed;
     };
     return SelectionButton;
+}());
+var LauchButton = (function () {
+    function LauchButton(tileset, screen_pos, tileset_pos) {
+        this.tileset = tileset;
+        this.screen_pos = screen_pos;
+        this.tileset_pos = tileset_pos;
+        this.width = tileset.tile_width;
+        this.height = tileset.tile_height;
+    }
+    LauchButton.prototype.render = function (data) {
+        var _a = [this.tileset_pos.x, this.tileset_pos.y], tx = _a[0], ty = _a[1];
+        if (this.pressed) {
+            tx += 1;
+        }
+        this.tileset.draw(data, tx, ty, this.screen_pos.x, this.screen_pos.y);
+    };
+    LauchButton.prototype.tick = function () { };
+    LauchButton.prototype.is_inside = function (p) {
+        if (p.x >= this.screen_pos.x && p.x <= this.screen_pos.x + this.width)
+            if (p.y >= this.screen_pos.y && p.y <= this.screen_pos.y + this.height)
+                return true;
+        return false;
+    };
+    LauchButton.prototype.on_click = function () {
+        this.pressed = !this.pressed;
+    };
+    return LauchButton;
 }());
 var MineralCounter = (function () {
     function MineralCounter(width, height, screen_pos) {
