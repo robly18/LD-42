@@ -480,6 +480,7 @@ var Map = (function () {
                 while (this.ground[seed.x][seed.y])
                     seed = new Point(rand_int(this.width), rand_int(this.height));
                 this.ground[seed.x][seed.y] = new Tile(k, GROUND_MAX_VALUE);
+                ret = seed;
                 var to_fill = [];
                 for (var j = 0; j < 8; j++)
                     to_fill.push([rand_int(3) - 1, rand_int(3) - 1]);
@@ -521,7 +522,6 @@ var Map = (function () {
                 }
             }
         }
-        console.log(ret);
         return ret;
     };
     Map.prototype.empty = function (p) {
@@ -945,7 +945,7 @@ var MenuState = (function (_super) {
         ctx.textAlign = "center";
         ctx.font = "30px Arial";
         ctx.fillText("Welcome to LD-42 \"Running out of Space\"", this.data.width / 2, 50);
-        ctx.font = "20px Arial";
+        ctx.font = "17px Arial";
         var text = ["Your goal is to return home by hopping from asteroid to asteroid.",
             "To do this, you need fuel, which you get by electrolyzing Ice using Fuel Factories.",
             "Factories also need power,",
@@ -963,10 +963,10 @@ var MenuState = (function (_super) {
             "If you are stuck, you can press J to use a Jetpack. But beware, as that uses the",
             "precious fuel you need to return home!",
             "That should be all. On an asteroid, your goal is to collect as much fuel as possible!",
-            "Once you conclude you can't collect any more, click the Launch button, or L, to move on.",
+            "Once you conclude you can't collect any more, click the Launch button to move on.",
             "Good luck, and don't run out of space!"];
         for (var i = 0; i != text.length; i++)
-            ctx.fillText(text[i], this.data.width / 2, 100 + 20 * i);
+            ctx.fillText(text[i], this.data.width / 2, 100 + 17 * i);
     };
     return MenuState;
 }(State));
@@ -1134,6 +1134,7 @@ var NavigationState = (function (_super) {
         if (cost > this.player_data.fuel)
             this.data.ctx.fillStyle = 'red';
         this.data.ctx.font = "13px Arial";
+        this.data.ctx.textAlign = "right";
         this.data.ctx.fillText("Fuel: " + cost, this.data.mpos.x, this.data.mpos.y);
     };
     return NavigationState;
@@ -1268,6 +1269,7 @@ var MineralCounter = (function () {
     MineralCounter.prototype.render = function (data) {
         data.ctx.fillStyle = 'white';
         data.ctx.font = "13px Arial";
+        data.ctx.textAlign = "left";
         data.ctx.fillText("CP: " + this.construction_parts, this.screen_pos.x, this.screen_pos.y);
     };
     MineralCounter.prototype.on_click = function (data) { };
@@ -1286,6 +1288,7 @@ var FuelInfo = (function () {
     FuelInfo.prototype.render = function (data) {
         data.ctx.fillStyle = 'white';
         data.ctx.font = "13px Arial";
+        data.ctx.textAlign = "left";
         data.ctx.fillText("Fuel: " + Math.floor(this.fuel), this.screen_pos.x, this.screen_pos.y);
     };
     FuelInfo.prototype.on_click = function (data) { };
