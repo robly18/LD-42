@@ -267,7 +267,7 @@ class NavigationState extends State {
   }
 }
 
-const COST_PER_UNIT = 100;
+const COST_PER_UNIT = 0;
 class EndState extends State {
   public tick() : State {
     return this;
