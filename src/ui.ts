@@ -55,6 +55,43 @@ class SelectionButton implements UIElement, Clickable {
   }
 }
 
+class LauchButton implements UIElement, Clickable {
+  width: number;
+  height: number;
+  pressed: boolean;
+  tileset: Tileset;
+  screen_pos: Point;
+  tileset_pos: Point;
+
+  constructor(tileset: Tileset, screen_pos: Point, tileset_pos: Point) {
+    this.tileset = tileset;
+    this.screen_pos = screen_pos;
+    this.tileset_pos = tileset_pos;
+
+    this.width = tileset.tile_width;
+    this.height = tileset.tile_height;
+  }
+
+  public render(data: GameData) {
+    let [tx, ty] = [this.tileset_pos.x, this.tileset_pos.y];
+    if(this.pressed) { tx += 1; }
+    this.tileset.draw(data, tx, ty, this.screen_pos.x, this.screen_pos.y);
+  }
+
+  public tick() {}
+
+  public is_inside(p: Point) {
+    if(p.x >= this.screen_pos.x && p.x <= this.screen_pos.x + this.width)
+      if(p.y >= this.screen_pos.y && p.y <= this.screen_pos.y + this.height)
+        return true;
+    return false;
+  }
+
+  public on_click() {
+    this.pressed = !this.pressed;
+  }
+}
+
 class MineralCounter implements UIElement {
   width: number;
   height: number;

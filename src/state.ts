@@ -9,6 +9,7 @@ abstract class State {
     this.click = false;
   }
 
+  public set_map(map : Map) {}
   public set_player_data(player_data : PlayerData) {}
   public tick() : State {return this;}
   public render() {}
@@ -109,11 +110,12 @@ class PlayState extends State {
 
   public init_UI() {
     this.UI = [];
-    let buttons_tileset = new Tileset('assets/test_button.png', 32);
-    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,44), new Point(0,0), BuildingType.MINE));
+    let buttons_tileset = new Tileset('assets/button.png', 32);
+    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,44), new Point(0,1), BuildingType.MINE));
     this.UI.push(new SelectionButton(buttons_tileset, new Point(10,10), new Point(0,0), BuildingType.BELT));
-    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,78), new Point(0,0), BuildingType.FUEL_FACTORY));
-    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,112), new Point(0,0), BuildingType.CONSTRUCTION_PARTS_FACTORY));
+    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,78), new Point(0,2), BuildingType.FUEL_FACTORY));
+    this.UI.push(new SelectionButton(buttons_tileset, new Point(10,112), new Point(0,3), BuildingType.CONSTRUCTION_PARTS_FACTORY));
+    this.UI.push(new LauchButton(buttons_tileset, new Point(10,146), new Point(2, 1)));
     this.UI.push(new MineralCounter(0, 0, new Point(10, 590)));
     this.UI.push(new FuelInfo(0, 0, new Point(10, 570)));
   }
@@ -128,7 +130,18 @@ class PlayState extends State {
       let player_pos = this.asteroid.player.pos;
       this.cam.x = Math.floor(player_pos.x - this.data.width/2);
       this.cam.y = Math.floor(player_pos.y - this.data.height/2);
-      for(let E of this.UI) E.tick(this.player_data);
+      for(let E of this.UI) {
+        if(E instanceof LauchButton && E.pressed) {
+          let p = navigation_state.map.cur_pos;
+          navigation_state.map.matrix[p.x][p.y] = null;
+          this.player_data.construction_parts = 10;
+          this.player_data.jetpack = false;
+          
+          navigation_state.set_player_data(this.player_data);
+          return navigation_state;
+        }
+        E.tick(this.player_data);
+      }
     }
     return this;
   }
@@ -137,7 +150,7 @@ class PlayState extends State {
     this.data.ctx.fillStyle = "black";
     this.data.ctx.clearRect(0,0,this.data.width, this.data.height);
     this.asteroid.render(this.data, this.player_data, this.cam);
-    for(let E of this.UI)  E.render(this.data);
+    for(let E of this.UI) E.render(this.data);
   }
 }
 
@@ -163,9 +176,12 @@ class NavigationState extends State {
       let p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
       if(!this.map.is_empty(p) && COST_PER_UNIT*this.map.dist(this.map.cur_pos, p) <= this.player_data.fuel) {
         this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
+        //if(p.x == 16 && p.y == 11) return new VictoryState(this.data);
         let new_state = new PlayState(this.data);
         new_state.set_map(this.map.matrix[p.x][p.y] as Map);
         new_state.set_player_data(this.player_data);
+
+        this.map.cur_pos = p;
         return new_state;
       }
     }
@@ -177,8 +193,8 @@ class NavigationState extends State {
     img.src = 'assets/menu_background.png';
     this.data.ctx.drawImage(img, 0, 0);
 
-    let width = Math.floor(800 / this.map.width)
-    let height = Math.floor(600 / this.map.height)
+    let width = Math.floor(800 / this.map.width);
+    let height = Math.floor(600 / this.map.height);
     this.data.ctx.fillStyle = "white";
     for(let i = 0; i < this.map.width; i++)
       this.data.ctx.fillRect(i*width, 0, 1, 600);
@@ -192,11 +208,23 @@ class NavigationState extends State {
     ast.src = 'assets/asteroid.png';
     for(let i = 0; i < this.map.width; i++)
       for(let j = 0; j < this.map.height; j++)
-        if(!this.map.is_empty(new Point(i,j)))
+        if(!this.map.is_empty(new Point(i,j)) && !(i == 16 && j == 11))
           this.data.ctx.drawImage(ast, i*width, j*height);
+
+    let plr = new Image();
+    plr.src = 'assets/player.png';
+    this.data.ctx.drawImage(plr, 0, 0, 8, 16, this.map.cur_pos.x*width + 16, this.map.cur_pos.y*height + 10, 16, 32);
+
+    this.data.ctx.fillStyle = 'white';
+    let p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
+    let cost = this.map.dist(this.map.cur_pos, p) * COST_PER_UNIT;
+    if(cost > this.player_data.fuel) this.data.ctx.fillStyle = 'red';
+    this.data.ctx.font = "13px Arial";
+    this.data.ctx.fillText("Fuel: " + cost, this.data.mpos.x, this.data.mpos.y);
+
+
 
   }
 }
 
-const COST_PER_UNIT = 10;
-class EndState extends State {}
+const COST_PER_UNIT = 50;
