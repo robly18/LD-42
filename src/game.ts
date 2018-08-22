@@ -57,12 +57,13 @@ class Game {
   state : State;
   constructor(canvas : HTMLCanvasElement) {
     this.data = new GameData(canvas);
-    this.state = new PlayState(this.data);
+    this.state = new NavigationState(this.data);
   }
 
   // Porco mas funciona o7
   public start() {
     this.data.canvas.addEventListener("click", e => {
+      this.state.click = true;
       for(let E of this.state.UI)
         if(E instanceof SelectionButton && E.is_inside(this.data.mpos)) {
           E.on_click();
