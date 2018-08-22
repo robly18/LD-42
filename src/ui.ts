@@ -11,7 +11,7 @@ interface UIElement {
 class SelectionButton implements UIElement {
   width: number;
   height: number;
-  pressed : number;
+  pressed : boolean;
   tileset : Tileset;
   screen_pos  : Point;
   tileset_pos : Point;
@@ -19,7 +19,7 @@ class SelectionButton implements UIElement {
   switch_to : BuildingType;
 
   constructor(tileset: Tileset, screen_pos: Point, tileset_pos: Point, switch_to: BuildingType) {
-    this.pressed = 0;
+    this.pressed = false;
     this.tileset = tileset;
     this.screen_pos = screen_pos;
     this.tileset_pos = tileset_pos;
@@ -43,7 +43,7 @@ class SelectionButton implements UIElement {
     this.toggle();
   }
 
-  private toggle() { this.pressed = (this.pressed+1) % 2; }
+  private toggle() { this.pressed = !this.pressed; }
 }
 
 class MineralCounter implements UIElement {
