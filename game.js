@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -922,8 +919,6 @@ var State = (function () {
         this.UI = [];
         this.click = false;
     }
-    State.prototype.set_map = function (map) { };
-    State.prototype.set_player_data = function (player_data) { };
     State.prototype.tick = function () { return this; };
     State.prototype.render = function () { };
     return State;
@@ -939,9 +934,7 @@ var MenuState = (function (_super) {
     }
     MenuState.prototype.tick = function () {
         if (this.clicked) {
-            var nav = new NavigationState(this.data);
-            nav.set_player_data(new PlayerData());
-            return nav;
+            return new NavigationState(this.data, new PlayerData());
         }
         else
             return this;
@@ -1027,9 +1020,9 @@ var PlayerData = (function () {
 }());
 var PlayState = (function (_super) {
     __extends(PlayState, _super);
-    function PlayState(data, ns) {
+    function PlayState(data, ns, player_data) {
         var _this = _super.call(this, data) || this;
-        _this.player_data = new PlayerData();
+        _this.player_data = player_data;
         _this.map = new Map(30, 30, 25);
         _this.asteroid = new Asteroid(_this.map);
         _this.cam = new Point(0, 0);
@@ -1038,9 +1031,6 @@ var PlayState = (function (_super) {
         _this.init_UI();
         return _this;
     }
-    PlayState.prototype.set_player_data = function (player_data) {
-        this.player_data = player_data;
-    };
     PlayState.prototype.set_map = function (map) {
         this.map = map;
         this.asteroid = new Asteroid(map);
@@ -1069,10 +1059,7 @@ var PlayState = (function (_super) {
                 var E = _a[_i];
                 if (E instanceof LauchButton && E.pressed) {
                     var p = this.navigation_state.map.cur_pos;
-                    this.navigation_state.map.matrix[p.x][p.y] = null;
-                    this.player_data.construction_parts = 10;
-                    this.player_data.jetpack = false;
-                    this.navigation_state.set_player_data(this.player_data);
+                    E.pressed = false;
                     return this.navigation_state;
                 }
                 E.tick(this.player_data);
@@ -1093,15 +1080,15 @@ var PlayState = (function (_super) {
 }(State));
 var NavigationState = (function (_super) {
     __extends(NavigationState, _super);
-    function NavigationState(data) {
+    function NavigationState(data, player_data) {
         var _this = _super.call(this, data) || this;
         _this.UI = [];
         _this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
+        _this.player_data = player_data;
+        _this.at_play_state = null;
+        _this.at_pos = new Point(0, 0);
         return _this;
     }
-    NavigationState.prototype.set_player_data = function (player_data) {
-        this.player_data = player_data;
-    };
     NavigationState.prototype.tick = function () {
         if (this.click) {
             this.click = false;
@@ -1112,12 +1099,19 @@ var NavigationState = (function (_super) {
             if (cost <= this.player_data.fuel) {
                 if (p.x == 16 && p.y == 11)
                     return new EndState(this.data);
+                if (this.at_play_state != null && p.x == this.at_pos.x && p.y == this.at_pos.y)
+                    return this.at_play_state;
                 if (!this.map.is_empty(p)) {
                     this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
-                    var new_state = new PlayState(this.data, this);
+                    var new_state = new PlayState(this.data, this, this.player_data);
                     new_state.set_map(this.map.matrix[p.x][p.y]);
-                    new_state.set_player_data(this.player_data);
+                    this.map.matrix[this.at_pos.x][this.at_pos.y] = null;
+                    this.at_play_state = new_state;
+                    this.map.matrix[this.at_pos.x][this.at_pos.y] = null;
+                    this.player_data.construction_parts = 10;
+                    this.player_data.jetpack = false;
                     this.map.cur_pos = p;
+                    this.at_pos = this.map.cur_pos;
                     return new_state;
                 }
             }
@@ -1157,7 +1151,11 @@ var NavigationState = (function (_super) {
     };
     return NavigationState;
 }(State));
+<<<<<<< HEAD
 var COST_PER_UNIT = 100;
+=======
+var COST_PER_UNIT = 0;
+>>>>>>> c3b7f14ea282a84130b5334eb4ed0e6e4fce9523
 var EndState = (function (_super) {
     __extends(EndState, _super);
     function EndState(data) {
