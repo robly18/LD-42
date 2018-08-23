@@ -9,8 +9,6 @@ abstract class State {
     this.click = false;
   }
 
-  public set_map(map : Map) {}
-  public set_player_data(player_data : PlayerData) {}
   public tick() : State {return this;}
   public render() {}
 }
@@ -27,9 +25,7 @@ class MenuState extends State {
 
   public tick() : State {
     if (this.clicked) {
-      let nav = new NavigationState(this.data);
-      nav.set_player_data(new PlayerData());
-      return nav;
+      return new NavigationState(this.data, new PlayerData(), null, new Point(0,0));
     } 
     else return this;
   }
@@ -120,9 +116,9 @@ class PlayState extends State {
   leftover_t : number;
   UI : UIElement[];
 
-  constructor(data : GameData, ns : NavigationState) {
+  constructor(data : GameData, ns : NavigationState, player_data : PlayerData) {
     super(data);
-    this.player_data = new PlayerData();
+    this.player_data = player_data;
     this.map = new Map(30, 30, 25);
     this.asteroid = new Asteroid(this.map);
     this.cam = new Point(0,0);
@@ -130,10 +126,6 @@ class PlayState extends State {
     this.navigation_state = ns;
 
     this.init_UI();
-  }
-
-  public set_player_data(player_data: PlayerData) {
-    this.player_data = player_data;
   }
 
   public set_map(map : Map) {
@@ -169,8 +161,6 @@ class PlayState extends State {
           this.navigation_state.map.matrix[p.x][p.y] = null;
           this.player_data.construction_parts = 10;
           this.player_data.jetpack = false;
-          
-          this.navigation_state.set_player_data(this.player_data);
           return this.navigation_state;
         }
         E.tick(this.player_data);
@@ -192,15 +182,16 @@ class NavigationState extends State {
   player_data : PlayerData;
   UI: UIElement[];
   map: SuperDuperAwesomeGalacticSpaceStarMap;
+  asteroid : Asteroid | null;
+  at_pos : Point;
 
-  constructor(data: GameData) {
+  constructor(data: GameData, player_data : PlayerData, asteroid : Asteroid | null, pos : Point) {
     super(data);
     this.UI = [];
     this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
-  }
-
-  public set_player_data(player_data: PlayerData) {
     this.player_data = player_data;
+    this.asteroid = asteroid;
+    this.at_pos = pos;
   }
 
   public tick() : State {
@@ -218,9 +209,8 @@ class NavigationState extends State {
         if(p.x == 16 && p.y == 11) return new EndState(this.data);
         if(!this.map.is_empty(p)) {
           this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
-          let new_state = new PlayState(this.data, this);
+          let new_state = new PlayState(this.data, this, this.player_data);
           new_state.set_map(this.map.matrix[p.x][p.y] as Map);
-          new_state.set_player_data(this.player_data);
 
           this.map.cur_pos = p;
           return new_state;

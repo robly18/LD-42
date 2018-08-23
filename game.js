@@ -1,10 +1,7 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -335,7 +332,7 @@ var TICKS_PER_MINE = 60;
 var GROUND_MAX_VALUE = 32;
 var CONSTRUCTION_PARTS_RECIPE = [5, 0, 1 / 16];
 var CONSTRUCTION_PARTS_TIME = 100;
-var FUEL_RECIPE = [0, 1, 1 / 256];
+var FUEL_RECIPE = [0, 2, 1 / 256];
 var FUEL_TIME = 420;
 var ASTEROID_VELOCITY = 400 / 1000;
 var ASTEROID_INTERVAL = 60;
@@ -922,8 +919,6 @@ var State = (function () {
         this.UI = [];
         this.click = false;
     }
-    State.prototype.set_map = function (map) { };
-    State.prototype.set_player_data = function (player_data) { };
     State.prototype.tick = function () { return this; };
     State.prototype.render = function () { };
     return State;
@@ -939,9 +934,7 @@ var MenuState = (function (_super) {
     }
     MenuState.prototype.tick = function () {
         if (this.clicked) {
-            var nav = new NavigationState(this.data);
-            nav.set_player_data(new PlayerData());
-            return nav;
+            return new NavigationState(this.data, new PlayerData(), null, new Point(0, 0));
         }
         else
             return this;
@@ -1027,9 +1020,9 @@ var PlayerData = (function () {
 }());
 var PlayState = (function (_super) {
     __extends(PlayState, _super);
-    function PlayState(data, ns) {
+    function PlayState(data, ns, player_data) {
         var _this = _super.call(this, data) || this;
-        _this.player_data = new PlayerData();
+        _this.player_data = player_data;
         _this.map = new Map(30, 30, 25);
         _this.asteroid = new Asteroid(_this.map);
         _this.cam = new Point(0, 0);
@@ -1038,9 +1031,6 @@ var PlayState = (function (_super) {
         _this.init_UI();
         return _this;
     }
-    PlayState.prototype.set_player_data = function (player_data) {
-        this.player_data = player_data;
-    };
     PlayState.prototype.set_map = function (map) {
         this.map = map;
         this.asteroid = new Asteroid(map);
@@ -1072,7 +1062,6 @@ var PlayState = (function (_super) {
                     this.navigation_state.map.matrix[p.x][p.y] = null;
                     this.player_data.construction_parts = 10;
                     this.player_data.jetpack = false;
-                    this.navigation_state.set_player_data(this.player_data);
                     return this.navigation_state;
                 }
                 E.tick(this.player_data);
@@ -1093,38 +1082,29 @@ var PlayState = (function (_super) {
 }(State));
 var NavigationState = (function (_super) {
     __extends(NavigationState, _super);
-    function NavigationState(data) {
+    function NavigationState(data, player_data, asteroid, pos) {
         var _this = _super.call(this, data) || this;
         _this.UI = [];
         _this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
+        _this.player_data = player_data;
+        _this.asteroid = asteroid;
+        _this.at_pos = pos;
         return _this;
     }
-    NavigationState.prototype.set_player_data = function (player_data) {
-        this.player_data = player_data;
-    };
     NavigationState.prototype.tick = function () {
         if (this.click) {
             this.click = false;
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
-<<<<<<< HEAD
-<<<<<<< HEAD
             p.x = Math.min(p.x, 16);
             p.y = Math.min(p.y, 11);
-=======
->>>>>>> 87056837043e01dfd3c4c3fe3cc14a1bb11306e5
-=======
-            p.x = Math.min(p.x, 16);
-            p.y = Math.min(p.y, 11);
->>>>>>> d49e6c4cd7dc713e756b36193eacf7e11857df5e
             var cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
             if (cost <= this.player_data.fuel) {
                 if (p.x == 16 && p.y == 11)
                     return new EndState(this.data);
                 if (!this.map.is_empty(p)) {
                     this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
-                    var new_state = new PlayState(this.data, this);
+                    var new_state = new PlayState(this.data, this, this.player_data);
                     new_state.set_map(this.map.matrix[p.x][p.y]);
-                    new_state.set_player_data(this.player_data);
                     this.map.cur_pos = p;
                     return new_state;
                 }
@@ -1165,11 +1145,7 @@ var NavigationState = (function (_super) {
     };
     return NavigationState;
 }(State));
-<<<<<<< HEAD
 var COST_PER_UNIT = 0;
-=======
-var COST_PER_UNIT = 100;
->>>>>>> 87056837043e01dfd3c4c3fe3cc14a1bb11306e5
 var EndState = (function (_super) {
     __extends(EndState, _super);
     function EndState(data) {
