@@ -213,12 +213,12 @@ class NavigationState extends State {
 
           this.map.matrix[this.at_pos.x][this.at_pos.y] = null;
           this.at_play_state = new_state;
-          this.at_pos = this.map.cur_pos;
           this.map.matrix[this.at_pos.x][this.at_pos.y] = null;
           this.player_data.construction_parts = 10;
           this.player_data.jetpack = false;
 
           this.map.cur_pos = p;
+          this.at_pos = this.map.cur_pos;
           return new_state;
         }
       }
