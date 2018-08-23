@@ -333,9 +333,9 @@ var BELT_SPEED_PXPERSEC = 32;
 var BUILDING_RANGE = 100;
 var TICKS_PER_MINE = 60;
 var GROUND_MAX_VALUE = 32;
-var CONSTRUCTION_PARTS_RECIPE = [3, 0, 1 / 16];
+var CONSTRUCTION_PARTS_RECIPE = [5, 0, 1 / 16];
 var CONSTRUCTION_PARTS_TIME = 100;
-var FUEL_RECIPE = [0, 2, 1 / 256];
+var FUEL_RECIPE = [0, 1, 1 / 256];
 var FUEL_TIME = 420;
 var ASTEROID_VELOCITY = 400 / 1000;
 var ASTEROID_INTERVAL = 60;
@@ -1106,8 +1106,16 @@ var NavigationState = (function (_super) {
         if (this.click) {
             this.click = false;
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
+<<<<<<< HEAD
+<<<<<<< HEAD
             p.x = Math.min(p.x, 16);
             p.y = Math.min(p.y, 11);
+=======
+>>>>>>> 87056837043e01dfd3c4c3fe3cc14a1bb11306e5
+=======
+            p.x = Math.min(p.x, 16);
+            p.y = Math.min(p.y, 11);
+>>>>>>> d49e6c4cd7dc713e756b36193eacf7e11857df5e
             var cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
             if (cost <= this.player_data.fuel) {
                 if (p.x == 16 && p.y == 11)
@@ -1157,7 +1165,11 @@ var NavigationState = (function (_super) {
     };
     return NavigationState;
 }(State));
+<<<<<<< HEAD
+var COST_PER_UNIT = 0;
+=======
 var COST_PER_UNIT = 100;
+>>>>>>> 87056837043e01dfd3c4c3fe3cc14a1bb11306e5
 var EndState = (function (_super) {
     __extends(EndState, _super);
     function EndState(data) {
