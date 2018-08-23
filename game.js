@@ -1,7 +1,10 @@
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -1103,8 +1106,16 @@ var NavigationState = (function (_super) {
         if (this.click) {
             this.click = false;
             var p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
+<<<<<<< HEAD
+<<<<<<< HEAD
             p.x = Math.min(p.x, 16);
             p.y = Math.min(p.y, 11);
+=======
+>>>>>>> 87056837043e01dfd3c4c3fe3cc14a1bb11306e5
+=======
+            p.x = Math.min(p.x, 16);
+            p.y = Math.min(p.y, 11);
+>>>>>>> d49e6c4cd7dc713e756b36193eacf7e11857df5e
             var cost = COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
             if (cost <= this.player_data.fuel) {
                 if (p.x == 16 && p.y == 11)
@@ -1154,7 +1165,11 @@ var NavigationState = (function (_super) {
     };
     return NavigationState;
 }(State));
+<<<<<<< HEAD
+var COST_PER_UNIT = 0;
+=======
 var COST_PER_UNIT = 100;
+>>>>>>> 87056837043e01dfd3c4c3fe3cc14a1bb11306e5
 var EndState = (function (_super) {
     __extends(EndState, _super);
     function EndState(data) {
