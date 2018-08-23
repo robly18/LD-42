@@ -253,6 +253,10 @@ class NavigationState extends State {
     plr.src = 'assets/player.png';
     this.data.ctx.drawImage(plr, 0, 0, 8, 16, this.map.cur_pos.x*width + 16, this.map.cur_pos.y*height + 10, 16, 32);
 
+    let home = new Image();
+    home.src = 'assets/home.png'
+    this.data.ctx.drawImage(home, 16*width, 11*height);
+
     this.data.ctx.fillStyle = 'white';
     let p = new Point(Math.floor(this.data.mpos.x / 47), Math.floor(this.data.mpos.y / 50));
     let cost = this.map.dist(this.map.cur_pos, p) * COST_PER_UNIT;
