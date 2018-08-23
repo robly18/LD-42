@@ -934,7 +934,7 @@ var MenuState = (function (_super) {
     }
     MenuState.prototype.tick = function () {
         if (this.clicked) {
-            return new NavigationState(this.data, new PlayerData(), null, new Point(0, 0));
+            return new NavigationState(this.data, new PlayerData());
         }
         else
             return this;
@@ -1059,9 +1059,7 @@ var PlayState = (function (_super) {
                 var E = _a[_i];
                 if (E instanceof LauchButton && E.pressed) {
                     var p = this.navigation_state.map.cur_pos;
-                    this.navigation_state.map.matrix[p.x][p.y] = null;
-                    this.player_data.construction_parts = 10;
-                    this.player_data.jetpack = false;
+                    E.pressed = false;
                     return this.navigation_state;
                 }
                 E.tick(this.player_data);
@@ -1082,13 +1080,13 @@ var PlayState = (function (_super) {
 }(State));
 var NavigationState = (function (_super) {
     __extends(NavigationState, _super);
-    function NavigationState(data, player_data, asteroid, pos) {
+    function NavigationState(data, player_data) {
         var _this = _super.call(this, data) || this;
         _this.UI = [];
         _this.map = new SuperDuperAwesomeGalacticSpaceStarMap(17, 12);
         _this.player_data = player_data;
-        _this.asteroid = asteroid;
-        _this.at_pos = pos;
+        _this.at_play_state = null;
+        _this.at_pos = new Point(0, 0);
         return _this;
     }
     NavigationState.prototype.tick = function () {
@@ -1101,10 +1099,18 @@ var NavigationState = (function (_super) {
             if (cost <= this.player_data.fuel) {
                 if (p.x == 16 && p.y == 11)
                     return new EndState(this.data);
+                if (this.at_play_state != null && p.x == this.at_pos.x && p.y == this.at_pos.y)
+                    return this.at_play_state;
                 if (!this.map.is_empty(p)) {
                     this.player_data.fuel -= COST_PER_UNIT * this.map.dist(this.map.cur_pos, p);
                     var new_state = new PlayState(this.data, this, this.player_data);
                     new_state.set_map(this.map.matrix[p.x][p.y]);
+                    this.map.matrix[this.at_pos.x][this.at_pos.y] = null;
+                    this.at_play_state = new_state;
+                    this.at_pos = this.map.cur_pos;
+                    this.map.matrix[this.at_pos.x][this.at_pos.y] = null;
+                    this.player_data.construction_parts = 10;
+                    this.player_data.jetpack = false;
                     this.map.cur_pos = p;
                     return new_state;
                 }
